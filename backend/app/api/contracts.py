@@ -8,7 +8,6 @@ from app.models.schemas import Contract, ContractClause, Obligation
 from app.data.seed_data import SEED_CONTRACTS
 from app.agents.thor import ThorAgent
 from app.agents import ContractWarRoomWorkflow, load_dataset_bundle
-from app.api.agents import record_workflow_execution
 
 router = APIRouter(prefix="/contracts", tags=["Contracts"])
 
@@ -382,6 +381,7 @@ async def upload_contract_file(
             real_world_events=events,
             clock_date="2027-03-15"
         )
+        from app.api.agents import record_workflow_execution
         record_workflow_execution(wf_res)
 
         contract = Contract(
@@ -443,6 +443,7 @@ async def upload_contract_file(
             real_world_events=events,
             clock_date="2027-03-15"
         )
+        from app.api.agents import record_workflow_execution
         record_workflow_execution(wf_res)
 
         out = wf_res.thor
