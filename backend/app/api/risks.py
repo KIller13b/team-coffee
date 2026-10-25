@@ -12,7 +12,18 @@ def get_risks(
     status: Optional[str] = None
 ):
     """Returns dynamic adversarial risks evaluated across contracts by Loki, Heimdall, and Tyr."""
-    risks = war_room_state.risks
+    from app.api.contracts import contracts_db
+    if not contracts_db:
+        return []
+
+    active_ids = {c.id for c in contracts_db}
+    clean_keys = {c.id.replace("cnt-", "").upper() for c in contracts_db}
+
+    risks = [
+        r for r in war_room_state.risks
+        if r.contractId in active_ids or r.contractId.replace("cnt-", "").upper() in clean_keys
+    ]
+
     if severity and severity != "all":
         risks = [r for r in risks if r.severity == severity]
     if contract_id and contract_id != "all":
