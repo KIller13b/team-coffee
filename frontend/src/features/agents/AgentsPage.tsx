@@ -9,6 +9,7 @@ import { Badge } from '../../components/ui/Badge'
 import { LoadingState } from '../../components/ui/LoadingState'
 import { WorkflowGraph } from './WorkflowGraph'
 import { AgentDetailDrawer } from './AgentDetailDrawer'
+import { CouncilChatTerminal } from './CouncilChatTerminal'
 import { contractsService } from '../../services/contractsService'
 import { AgentInfo, AgentMessage, WorkflowStep } from '../../types/agent'
 import { AGENT_ROLES, AgentId } from '../../lib/constants'
@@ -22,7 +23,7 @@ export const AgentsPage: React.FC = () => {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([])
   const [selectedAgent, setSelectedAgent] = useState<AgentInfo | null>(null)
-  const [activeTab, setActiveTab] = useState<'debate' | 'graph' | 'pipeline'>('debate')
+  const [activeTab, setActiveTab] = useState<'chat' | 'debate' | 'graph' | 'pipeline'>('chat')
   const [filterAgent, setFilterAgent] = useState<string>('all')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -123,6 +124,17 @@ export const AgentsPage: React.FC = () => {
       <div className="flex items-center justify-between border-b border-[#1D344B] pb-1 text-xs flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setActiveTab('chat')}
+            className={`px-4 py-2 font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'chat'
+                ? 'bg-[#10263B] text-teal-300 border-b-2 border-teal-400'
+                : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#0D2033]'
+            }`}
+          >
+            <span>💬</span>
+            <span>Interactive War Room Terminal</span>
+          </button>
+          <button
             onClick={() => setActiveTab('debate')}
             className={`px-4 py-2 font-semibold rounded-t-lg transition-colors cursor-pointer ${
               activeTab === 'debate'
@@ -130,7 +142,7 @@ export const AgentsPage: React.FC = () => {
                 : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#0D2033]'
             }`}
           >
-            Live Debate & Consensus Arena ({messages.length})
+            Live Consensus Feed ({messages.length})
           </button>
           <button
             onClick={() => setActiveTab('graph')}
@@ -150,7 +162,7 @@ export const AgentsPage: React.FC = () => {
                 : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#0D2033]'
             }`}
           >
-            Sequential Execution Pipeline
+            Sequential Pipeline
           </button>
         </div>
 
@@ -173,6 +185,11 @@ export const AgentsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Tab Content 0: Interactive Council Terminal */}
+      {activeTab === 'chat' && (
+        <CouncilChatTerminal />
+      )}
 
       {/* Tab Content 1: Live Debate Feed */}
       {activeTab === 'debate' && (
