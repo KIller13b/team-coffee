@@ -75,10 +75,53 @@ def get_messages():
 @router.get("/workflow/steps")
 def get_workflow_steps():
     return [
-        {"id": "step-1", "stepNumber": 1, "agentId": "odin", "title": "Mission Orchestration", "description": "Decompose portfolio into pipelines", "status": "completed", "timestamp": "11:45:00"},
-        {"id": "step-2", "stepNumber": 2, "agentId": "thor", "title": "Semantic Clause Extraction", "description": "Verbatim extraction of renewal windows", "status": "completed", "timestamp": "11:48:00"},
-        {"id": "step-3", "stepNumber": 3, "agentId": "norns", "title": "Timeline Projection", "description": "Calculate deadline cascades", "status": "completed", "timestamp": "11:51:00"},
-        {"id": "step-4", "stepNumber": 4, "agentId": "loki", "title": "Adversarial Risk Challenge", "description": "Exposing cross-contract collision", "status": "completed", "timestamp": "11:56:00"},
-        {"id": "step-5", "stepNumber": 5, "agentId": "heimdall", "title": "External Fact Verification", "description": "Audit mail logs and ERP event feeds", "status": "completed", "timestamp": "12:15:00"},
-        {"id": "step-6", "stepNumber": 6, "agentId": "tyr", "title": "Binding Arbitration", "description": "Prescriptive 3-step mitigation directive", "status": "completed", "timestamp": "12:22:00"}
+        {"id": "step-1", "stepNumber": 1, "agentId": "thor", "title": "Thor Extraction", "description": "What does it say? Verbatim clause extraction", "status": "completed", "timestamp": "11:45:00"},
+        {"id": "step-2", "stepNumber": 2, "agentId": "norns", "title": "Norns Timekeeping", "description": "WHEN? Projected deadlines & liabilities", "status": "completed", "timestamp": "11:48:00"},
+        {"id": "step-3", "stepNumber": 3, "agentId": "loki", "title": "Loki Red-Team", "description": "WHAT CAN GO WRONG? Adversarial claims", "status": "completed", "timestamp": "11:51:00"},
+        {"id": "step-4", "stepNumber": 4, "agentId": "heimdall", "title": "Heimdall Sentinel", "description": "IS THIS ACTUALLY HAPPENING? YES/NO audit", "status": "completed", "timestamp": "11:56:00"},
+        {"id": "step-5", "stepNumber": 5, "agentId": "tyr", "title": "Tyr Arbitration", "description": "Resolve dispute for NO/contested claims", "status": "completed", "timestamp": "12:15:00"},
+        {"id": "step-6", "stepNumber": 6, "agentId": "odin", "title": "Odin Allfather", "description": "Synthesize intelligence & generate FINAL ACTION", "status": "completed", "timestamp": "12:22:00"}
     ]
+
+@router.post("/workflow/run")
+def run_war_room_workflow(
+    contract_id: str = "A1",
+    contract_text: str = None,
+    clock_date: str = "2027-01-15"
+):
+    """
+    Executes the Thor -> (Norns & Loki) -> Heimdall -> (YES direct / NO -> Tyr) -> Odin -> Final Action workflow.
+    """
+    import os
+    from app.agents import ContractWarRoomWorkflow, load_dataset_bundle
+
+    workflow = ContractWarRoomWorkflow()
+    
+    # Try finding bundle path
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "odin_data", "bundle"))
+    events = []
+    text = contract_text
+
+    if os.path.exists(base_dir):
+        bundle = load_dataset_bundle(base_dir)
+        events = bundle.get("events", [])
+        if not text and contract_id in bundle.get("contracts", {}):
+            text = bundle["contracts"][contract_id]
+
+    if not text:
+        text = (
+            f"Master Cloud Service Agreement between Quillhub Inc. and Provider Corp.\n"
+            f"Section 14.2 (Term & Expiration): This Agreement shall automatically renew for successive terms of 12 months "
+            f"unless either party gives written notice of non-renewal at least 45 days prior to expiration.\n"
+            f"Service Level Agreement §2: Provider commits to 99.9% Monthly Uptime Percentage.\n"
+            f"Section 16: All notices must be served in writing via registered mail."
+        )
+
+    result = workflow.execute(
+        doc_id=contract_id,
+        contract_text=text,
+        real_world_events=events,
+        clock_date=clock_date
+    )
+    return result
+
