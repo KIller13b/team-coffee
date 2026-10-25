@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -12,23 +12,58 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { contractsService } from '../../services/contractsService'
 
 interface SidebarProps {
   className?: string
   onCloseMobile?: () => void
 }
 
-const NAV_ITEMS = [
-  { name: 'Dashboard', path: '/', icon: LayoutDashboard, badge: null },
-  { name: 'Contracts', path: '/contracts', icon: FileText, badge: '10' },
-  { name: 'Timeline', path: '/timeline', icon: CalendarClock, badge: 'Sim' },
-  { name: 'Risks & Alerts', path: '/risks', icon: AlertTriangle, badge: '7' },
-  { name: 'Agents', path: '/agents', icon: Bot, badge: '6 Live' },
-  { name: 'Reports', path: '/reports', icon: BarChart3, badge: null },
-  { name: 'Settings', path: '/settings', icon: Settings, badge: null },
-]
-
 export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) => {
+  const [contractsCount, setContractsCount] = useState<number>(0)
+  const [risksCount, setRisksCount] = useState<number>(0)
+
+  const loadCounts = async () => {
+    try {
+      const [contracts, risks] = await Promise.all([
+        contractsService.getContracts(),
+        contractsService.getRisks(),
+      ])
+      setContractsCount(contracts.length)
+      setRisksCount(risks.length)
+    } catch {
+      setContractsCount(0)
+      setRisksCount(0)
+    }
+  }
+
+  useEffect(() => {
+    loadCounts()
+    const handleUpload = () => loadCounts()
+    window.addEventListener('odin:contract-uploaded', handleUpload)
+    return () => window.removeEventListener('odin:contract-uploaded', handleUpload)
+  }, [])
+
+  const navItems = [
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard, badge: null },
+    {
+      name: 'Contracts',
+      path: '/contracts',
+      icon: FileText,
+      badge: contractsCount > 0 ? `${contractsCount}` : null,
+    },
+    { name: 'Timeline', path: '/timeline', icon: CalendarClock, badge: contractsCount > 0 ? 'Sim' : null },
+    {
+      name: 'Risks & Alerts',
+      path: '/risks',
+      icon: AlertTriangle,
+      badge: risksCount > 0 ? `${risksCount}` : null,
+    },
+    { name: 'Agents', path: '/agents', icon: Bot, badge: '6 Live' },
+    { name: 'Reports', path: '/reports', icon: BarChart3, badge: null },
+    { name: 'Settings', path: '/settings', icon: Settings, badge: null },
+  ]
+
   return (
     <aside
       className={cn(
@@ -64,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
           </span>
         </div>
 
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
@@ -127,7 +162,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
             </span>
           </div>
           <p className="text-[10px] text-[#94A3B8] leading-relaxed">
-            Tyr arbitrated 1 cross-contract collision today.
+            {contractsCount > 0
+              ? `${contractsCount} active agreement${contractsCount > 1 ? 's' : ''} monitored across 6 agents.`
+              : 'Standby mode. Ingest contracts to start analysis.'}
           </p>
         </div>
       </div>

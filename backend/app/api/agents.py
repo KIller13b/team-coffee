@@ -117,12 +117,44 @@ def record_workflow_execution(result):
 @router.get("/agents", response_model=List[AgentInfo])
 def get_agents():
     """Returns the Norse Council agents with their current live status."""
-    return [AgentInfo(**a) for a in SEED_AGENTS]
+    from app.api.contracts import contracts_db
+    has_contracts = len(contracts_db) > 0
+    standby_tasks = {
+        "odin": "Standby — Awaiting contract portfolio ingestion",
+        "thor": "Standby — Primed for verbatim clause OCR & extraction",
+        "norns": "Standby — Primed for temporal milestone projections",
+        "loki": "Standby — Primed for adversarial red-team stress test",
+        "heimdall": "Standby — Sentinel listening to telemetry & event logs",
+        "tyr": "Standby — Arbiter primed for cross-contract dispute rulings"
+    }
+
+    result = []
+    for a in SEED_AGENTS:
+        agent_data = dict(a)
+        if not has_contracts:
+            agent_data["status"] = "ready"
+            agent_data["completedTasksCount"] = 0
+            agent_data["totalProcessedCount"] = 0
+            agent_data["currentTask"] = standby_tasks.get(a["id"], "Standby — Awaiting document ingestion")
+        else:
+            agent_data["completedTasksCount"] = len(contracts_db) * 4
+            agent_data["totalProcessedCount"] = len(contracts_db) * 4
+            agent_data["currentTask"] = f"Active analysis across {len(contracts_db)} commercial agreement{'s' if len(contracts_db) > 1 else ''}"
+        result.append(AgentInfo(**agent_data))
+    return result
 
 @router.get("/agents/messages")
 def get_messages():
     """FR9.4: Real-time agent debate feed (Loki challenges, Heimdall verifications, Tyr rulings)."""
-    return war_room_state.messages
+    from app.api.contracts import contracts_db
+    if not contracts_db:
+        return []
+    active_ids = {c.id for c in contracts_db}
+    clean_keys = {c.id.replace("cnt-", "").upper() for c in contracts_db}
+    return [
+        m for m in war_room_state.messages
+        if not m.get("contractId") or m.get("contractId") in active_ids or m.get("contractId", "").replace("cnt-", "").upper() in clean_keys
+    ]
 
 @router.get("/workflow/steps")
 def get_workflow_steps():

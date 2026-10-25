@@ -21,24 +21,28 @@ let reportsState = [...MOCK_REPORTS]
 export const contractsService = {
   // Contracts
   async getContracts(): Promise<Contract[]> {
-    let localUploads: Contract[] = []
     try {
-      localUploads = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+      const res = await apiRequest<Contract[]>('/contracts', {}, () => [])
+      if (!res.isMock && Array.isArray(res.data)) {
+        contractsState = res.data
+        try {
+          if (res.data.length === 0) {
+            localStorage.removeItem('odin_uploaded_contracts')
+          } else {
+            localStorage.setItem('odin_uploaded_contracts', JSON.stringify(res.data))
+          }
+        } catch {}
+        return res.data
+      }
     } catch {}
 
+    // Fallback if backend is completely offline
     try {
-      const res = await apiRequest<Contract[]>('/contracts', {}, () => contractsState)
-      const backendData = Array.isArray(res.data) ? res.data : []
-      const seenIds = new Set(backendData.map((c) => c.id))
-      const merged = [
-        ...backendData,
-        ...localUploads.filter((c) => !seenIds.has(c.id)),
-      ]
-      contractsState = merged
-      return merged
+      const localUploads: Contract[] = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+      contractsState = localUploads
+      return localUploads
     } catch {
-      const merged = [...localUploads, ...contractsState]
-      return merged
+      return contractsState
     }
   },
 
@@ -211,37 +215,93 @@ export const contractsService = {
 
   // Risks
   async getRisks(): Promise<Risk[]> {
-    const res = await apiRequest<Risk[]>('/risks', {}, () => risksState)
-    return res.data
+    const contracts = await this.getContracts()
+    if (!contracts || contracts.length === 0) {
+      return []
+    }
+    const contractIds = new Set(contracts.map((c) => c.id))
+    const cleanIds = new Set(contracts.map((c) => c.id.replace('cnt-', '').toUpperCase()))
+
+    try {
+      const res = await apiRequest<Risk[]>('/risks', {}, () => [])
+      const data = Array.isArray(res.data) ? res.data : []
+      return data.filter(
+        (r) => contractIds.has(r.contractId) || cleanIds.has(r.contractId.replace('cnt-', '').toUpperCase())
+      )
+    } catch {
+      return []
+    }
   },
 
   async getRiskById(id: string): Promise<Risk | null> {
-    const res = await apiRequest<Risk | null>(`/risks/${id}`, {}, () => {
-      return risksState.find((r) => r.id === id) || null
-    })
-    return res.data
+    try {
+      const res = await apiRequest<Risk | null>(`/risks/${id}`)
+      if (res.data) return res.data
+    } catch {}
+    const all = await this.getRisks()
+    return all.find((r) => r.id === id) || null
   },
 
   // Agents
   async getAgents(): Promise<AgentInfo[]> {
-    const res = await apiRequest<AgentInfo[]>('/agents', {}, () => MOCK_AGENTS)
+    const contracts = await this.getContracts()
+    const hasContracts = contracts.length > 0
+    const res = await apiRequest<AgentInfo[]>('/agents', {}, () => {
+      return MOCK_AGENTS.map((a) => ({
+        ...a,
+        completedTasksCount: hasContracts ? contracts.length * 4 : 0,
+        totalProcessedCount: hasContracts ? contracts.length * 4 : 0,
+        status: hasContracts ? a.status : 'ready',
+        currentTask: hasContracts ? a.currentTask : 'Standby — Awaiting document ingestion',
+      }))
+    })
     return res.data
   },
 
   async getAgentMessages(): Promise<AgentMessage[]> {
-    const res = await apiRequest<AgentMessage[]>('/agents/messages', {}, () => MOCK_AGENT_MESSAGES)
-    return res.data
+    const contracts = await this.getContracts()
+    if (!contracts || contracts.length === 0) {
+      return []
+    }
+    const contractIds = new Set(contracts.map((c) => c.id))
+    const cleanIds = new Set(contracts.map((c) => c.id.replace('cnt-', '').toUpperCase()))
+    try {
+      const res = await apiRequest<AgentMessage[]>('/agents/messages', {}, () => [])
+      const data = Array.isArray(res.data) ? res.data : []
+      return data.filter(
+        (m) => !m.contractId || contractIds.has(m.contractId) || cleanIds.has(m.contractId.replace('cnt-', '').toUpperCase())
+      )
+    } catch {
+      return []
+    }
   },
 
   async getWorkflowSteps(): Promise<WorkflowStep[]> {
-    const res = await apiRequest<WorkflowStep[]>('/workflow/steps', {}, () => MOCK_WORKFLOW_STEPS)
+    const contracts = await this.getContracts()
+    if (!contracts || contracts.length === 0) {
+      return []
+    }
+    const res = await apiRequest<WorkflowStep[]>('/workflow/steps', {}, () => [])
     return res.data
   },
 
   // Timeline
   async getTimelineEvents(): Promise<TimelineEvent[]> {
-    const res = await apiRequest<TimelineEvent[]>('/timeline/events', {}, () => MOCK_TIMELINE_EVENTS)
-    return res.data
+    const contracts = await this.getContracts()
+    if (!contracts || contracts.length === 0) {
+      return []
+    }
+    const contractIds = new Set(contracts.map((c) => c.id))
+    const cleanIds = new Set(contracts.map((c) => c.id.replace('cnt-', '').toUpperCase()))
+    try {
+      const res = await apiRequest<TimelineEvent[]>('/timeline/events', {}, () => [])
+      const data = Array.isArray(res.data) ? res.data : []
+      return data.filter(
+        (e) => !e.contractId || contractIds.has(e.contractId) || cleanIds.has(e.contractId.replace('cnt-', '').toUpperCase())
+      )
+    } catch {
+      return []
+    }
   },
 
   // External Events (Heimdall)
@@ -252,8 +312,21 @@ export const contractsService = {
 
   // Reports
   async getReports(): Promise<ContractReport[]> {
-    const res = await apiRequest<ContractReport[]>('/reports', {}, () => reportsState)
-    return res.data
+    const contracts = await this.getContracts()
+    if (!contracts || contracts.length === 0) {
+      return []
+    }
+    const contractIds = new Set(contracts.map((c) => c.id))
+    const cleanIds = new Set(contracts.map((c) => c.id.replace('cnt-', '').toUpperCase()))
+    try {
+      const res = await apiRequest<ContractReport[]>('/reports', {}, () => [])
+      const data = Array.isArray(res.data) ? res.data : []
+      return data.filter(
+        (r) => !r.contractId || contractIds.has(r.contractId) || cleanIds.has(r.contractId.replace('cnt-', '').toUpperCase())
+      )
+    } catch {
+      return []
+    }
   },
 
   async updateActionStatus(actionId: string, status: RecommendedAction['status']): Promise<void> {

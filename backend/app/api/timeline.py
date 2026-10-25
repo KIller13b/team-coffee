@@ -32,7 +32,15 @@ def set_simulated_clock(req: ClockSetRequest):
 @router.get("/timeline/events", response_model=List[TimelineEvent])
 def get_timeline_events():
     """Returns dynamic obligation milestones projected by Norns as of current simulated clock (FR3.1)."""
-    return war_room_state.timeline_events
+    from app.api.contracts import contracts_db
+    if not contracts_db:
+        return []
+    active_ids = {c.id for c in contracts_db}
+    clean_keys = {c.id.replace("cnt-", "").upper() for c in contracts_db}
+    return [
+        e for e in war_room_state.timeline_events
+        if e.contractId in active_ids or e.contractId.replace("cnt-", "").upper() in clean_keys
+    ]
 
 @router.get("/events/external")
 def get_external_events():
@@ -45,7 +53,15 @@ def get_contract_reports():
     Returns both the Master Company Risk Report (FR8.2) and Per-Contract Reports (FR8.1)
     synthesized by Odin, grounded with verbatim citations and prioritized actions.
     """
-    return war_room_state.reports
+    from app.api.contracts import contracts_db
+    if not contracts_db:
+        return []
+    active_ids = {c.id for c in contracts_db}
+    clean_keys = {c.id.replace("cnt-", "").upper() for c in contracts_db}
+    return [
+        r for r in war_room_state.reports
+        if not r.contractId or r.contractId in active_ids or r.contractId.replace("cnt-", "").upper() in clean_keys
+    ]
 
 @router.get("/reports/{report_id}", response_model=ContractReport)
 def get_single_report(report_id: str):

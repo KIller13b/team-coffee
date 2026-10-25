@@ -65,27 +65,101 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner Alert / Context Bar */}
-      <div className="p-3.5 rounded-xl bg-gradient-to-r from-blue-900/30 via-[#0D2033] to-[#10263B] border border-blue-500/30 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-500/20 text-blue-300 shrink-0">
-            <Sparkles className="w-4 h-4" />
+      {totalContracts === 0 ? (
+        <div className="p-3.5 rounded-xl bg-gradient-to-r from-slate-900/40 via-[#0D2033] to-[#10263B] border border-[#1D344B] flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-teal-500/10 text-teal-300 shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold text-[#F1F5F9]">
+                Norse Council Standby — Ready for Contract Ingestion
+              </h2>
+              <p className="text-[11px] text-[#94A3B8]">
+                Odin, Thor, The Norns, Loki, Heimdall, and Tyr are online. Upload an agreement to initiate autonomous clause extraction, timeline mapping, and adversarial risk auditing.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xs font-semibold text-[#F1F5F9]">
-              Active Arbitration Directive by Tyr
-            </h2>
-            <p className="text-[11px] text-[#94A3B8]">
-              Apex Cloud termination frozen to prevent ₹85L Vanguard ERP cross-default breach.
-              Bridge extension addendum recommended.
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/30">
+              Council Primed
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/30">
-            Heimdall Verified
-          </span>
+      ) : messages.find((m) => m.agentId === 'tyr' || m.stage === 'ruling') ? (
+        (() => {
+          const tyrDirective = messages.find((m) => m.agentId === 'tyr' || m.stage === 'ruling')!
+          return (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-900/30 via-[#0D2033] to-[#10263B] border border-amber-500/30 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300 shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-semibold text-[#F1F5F9]">
+                    {tyrDirective.title || 'Active Arbitration Directive by Tyr'}
+                  </h2>
+                  <p className="text-[11px] text-[#94A3B8]">
+                    {tyrDirective.message}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+                  Tyr Ruling Active
+                </span>
+              </div>
+            </div>
+          )
+        })()
+      ) : risks.find((r) => r.crossContractConflict || r.severity === 'critical') ? (
+        (() => {
+          const crit = risks.find((r) => r.crossContractConflict || r.severity === 'critical')!
+          return (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-red-900/30 via-[#0D2033] to-[#10263B] border border-red-500/30 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-500/20 text-red-300 shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-semibold text-[#F1F5F9]">
+                    Critical Conflict Flagged: {crit.title}
+                  </h2>
+                  <p className="text-[11px] text-[#94A3B8]">
+                    {crit.explanation || (crit as any).summary || 'Adversarial contradiction identified by Loki & Tyr.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30">
+                  Collision Detected
+                </span>
+              </div>
+            </div>
+          )
+        })()
+      ) : (
+        <div className="p-3.5 rounded-xl bg-gradient-to-r from-teal-900/30 via-[#0D2033] to-[#10263B] border border-teal-500/30 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-teal-500/20 text-teal-300 shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold text-[#F1F5F9]">
+                Council Harmonized — {totalContracts} Active Agreement{totalContracts > 1 ? 's' : ''} Audited
+              </h2>
+              <p className="text-[11px] text-[#94A3B8]">
+                All obligations verified against telemetry by Heimdall. No unresolved cross-contract disputes pending.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/30">
+              Heimdall Verified
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Top Summary Metric Cards */}
       <SummaryCards

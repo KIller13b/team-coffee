@@ -131,8 +131,11 @@ export const ContractsListPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={async () => {
-                if (window.confirm('Are you sure you want to clear all uploaded contracts?')) {
+                const confirmed = window.confirm('Are you sure you want to clear all uploaded contracts?')
+                if (confirmed) {
+                  setContracts([])
                   await contractsService.clearContracts()
+                  await loadContracts()
                 }
               }}
               className="text-xs text-red-400 hover:text-red-300 border-red-500/30 hover:border-red-500/60"
@@ -277,8 +280,11 @@ export const ContractsListPage: React.FC = () => {
                         </Link>
                         <button
                           onClick={async () => {
-                            if (window.confirm(`Delete "${contract.title}"?`)) {
+                            const confirmed = window.confirm(`Delete "${contract.title}"?`)
+                            if (confirmed) {
+                              setContracts((prev) => prev.filter((c) => c.id !== contract.id))
                               await contractsService.deleteContract(contract.id)
+                              await loadContracts()
                             }
                           }}
                           className="p-1.5 text-[#64748B] hover:text-red-400 rounded transition-colors"
