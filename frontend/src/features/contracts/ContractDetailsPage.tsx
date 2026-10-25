@@ -284,16 +284,16 @@ export const ContractDetailsPage: React.FC = () => {
                       className="hover:bg-[#10263B]/60 transition-colors cursor-pointer group"
                     >
                       <td className="py-3 px-4 font-semibold text-[#F1F5F9] group-hover:text-teal-300">
-                        {clause.field}
+                        {clause.field || (clause as any).title || 'Contract Covenant'}
                       </td>
                       <td className="py-3 px-4 max-w-xs text-[#94A3B8] truncate">
-                        {clause.extractedValue}
+                        {clause.extractedValue || (clause as any).text || (clause as any).title || 'Extracted term'}
                       </td>
                       <td className="py-3 px-4 font-mono text-[11px] text-teal-300">
-                        {clause.clauseCitation}
+                        {clause.clauseCitation || (clause as any).section || 'Referenced Section'}
                       </td>
                       <td className="py-3 px-4 capitalize text-[#94A3B8]">
-                        {clause.category}
+                        {clause.category || (clause as any).type || 'General'}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">

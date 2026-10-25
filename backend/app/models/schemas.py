@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Optional, Literal
 
 RiskLevel = Literal['low', 'medium', 'high', 'critical']
@@ -22,6 +22,20 @@ class ContractClause(BaseModel):
     text: Optional[str] = None
     type: Optional[str] = None
     isFlagged: Optional[bool] = False
+
+    @model_validator(mode="after")
+    def sync_compatibility_fields(self):
+        if not self.field and self.title:
+            self.field = self.title
+        if not self.clauseCitation and self.section:
+            self.clauseCitation = self.section
+        if not self.verbatimText and self.text:
+            self.verbatimText = self.text
+        if not self.extractedValue:
+            self.extractedValue = self.text or self.title or ""
+        if self.category == "general" and self.type:
+            self.category = self.type
+        return self
 
 class Obligation(BaseModel):
     id: str

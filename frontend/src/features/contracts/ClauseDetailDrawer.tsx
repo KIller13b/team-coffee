@@ -14,12 +14,17 @@ interface ClauseDetailDrawerProps {
 export const ClauseDetailDrawer: React.FC<ClauseDetailDrawerProps> = ({ clause, onClose }) => {
   if (!clause) return null
 
+  const titleText = clause.field || (clause as any).title || 'Extracted Covenant'
+  const citationText = clause.clauseCitation || (clause as any).section || 'Referenced Section'
+  const valueText = clause.extractedValue || (clause as any).text || (clause as any).title || 'Extracted Term'
+  const verbatimEvidence = clause.verbatimText || (clause as any).text || 'No verbatim excerpt recorded.'
+
   return (
     <Drawer
       isOpen={Boolean(clause)}
       onClose={onClose}
-      title={clause.field}
-      subtitle={clause.clauseCitation}
+      title={titleText}
+      subtitle={citationText}
       width="lg"
     >
       <div className="space-y-6">
@@ -38,7 +43,7 @@ export const ClauseDetailDrawer: React.FC<ClauseDetailDrawerProps> = ({ clause, 
           </div>
 
           <h3 className="text-base font-bold text-[#F1F5F9] leading-snug">
-            {clause.extractedValue}
+            {valueText}
           </h3>
 
           <ProgressBar
@@ -64,10 +69,10 @@ export const ClauseDetailDrawer: React.FC<ClauseDetailDrawerProps> = ({ clause, 
             <div className="absolute top-2 right-2 text-[10px] uppercase font-bold bg-teal-500/10 text-teal-300 px-1.5 py-0.5 rounded border border-teal-500/20">
               Verified Source
             </div>
-            "{clause.verbatimText}"
+            "{verbatimEvidence}"
           </div>
           <p className="text-[11px] text-[#64748B] mt-1.5">
-            Verified citation location: <strong className="text-[#94A3B8]">{clause.clauseCitation}</strong>
+            Verified citation location: <strong className="text-[#94A3B8]">{citationText}</strong>
           </p>
         </div>
 
