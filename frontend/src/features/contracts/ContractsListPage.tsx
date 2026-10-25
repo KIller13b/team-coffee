@@ -182,12 +182,19 @@ export const ContractsListPage: React.FC = () => {
                     className="hover:bg-[#10263B]/50 transition-colors group"
                   >
                     <td className="py-3 px-4 max-w-xs">
-                      <Link
-                        to={`/contracts/${contract.id}`}
-                        className="font-semibold text-[#F1F5F9] group-hover:text-teal-300 transition-colors block truncate"
-                      >
-                        {contract.title}
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/contracts/${contract.id}`}
+                          className="font-semibold text-[#F1F5F9] group-hover:text-teal-300 transition-colors truncate"
+                        >
+                          {contract.title}
+                        </Link>
+                        {!['cnt-A1','cnt-A2','cnt-A3','cnt-B1','cnt-B2','cnt-C1','cnt-D1','cnt-STD'].includes(contract.id) && (
+                          <span className="shrink-0 px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">
+                            UPLOADED
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[11px] text-[#94A3B8] truncate block">
                         {contract.counterparty}
                       </span>
