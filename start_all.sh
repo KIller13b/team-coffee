@@ -11,9 +11,8 @@ fuser -k 5173/tcp 2>/dev/null || true
 sleep 1
 
 # Start Backend
-echo "Starting FastAPI Backend Microservice on http://localhost:8000..."
-cd "$DIR/backend"
-PYTHONPATH=. "$DIR/backend/.venv/bin/uvicorn" app.main:app --host 0.0.0.0 --port 8000 --reload &
+echo "Starting Node.js/Express MERN Backend on http://localhost:8000..."
+npm --prefix "$DIR/backend" run dev &
 BACKEND_PID=$!
 
 # Wait for backend to be ready
