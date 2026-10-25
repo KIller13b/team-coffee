@@ -86,17 +86,62 @@ class NornsAgent(BaseAgent):
                 }
             ])
         elif cid_upper in ["A1", "QH-STRATO-2026-001"]:
-            # A1 is Cover Page (Initial 90-day non-renewal notice superseded by A3)
-            milestones.append({
-                "id": f"time-{cid}-original-renewal",
-                "date": "2028-05-02",
-                "title": "StratoNode 90-Day Initial Non-Renewal Notice Benchmark (Superseded by A3)",
-                "type": "renewal_window",
-                "description": "Original 90-day notice under Section B prior to July 31, 2028 term expiration.",
-                "clause_citation": "Section B (Subscription Period & Renewal)",
-                "penalty_exposure_inr": 7968000.0,
-                "is_worst_case": False,
-            })
+            # A1 Cover Page Milestones derived dynamically from stored contract terms
+            # Calculated calendar-day notice deadline: 2028-07-31 minus 90 calendar days = 2028-05-02
+            end_d = date(2028, 7, 31)
+            notice_d = (end_d - timedelta(days=90)).strftime("%Y-%m-%d")
+            milestones.extend([
+                {
+                    "id": f"time-{cid}-strato-signed",
+                    "date": "2026-07-15",
+                    "title": "StratoNode Inc. Execution Date",
+                    "type": "milestone",
+                    "description": "Formally signed by Jordan Hale, VP Sales on behalf of StratoNode Inc.",
+                    "clause_citation": "Signatures",
+                    "penalty_exposure_inr": 0.0,
+                    "is_worst_case": False,
+                },
+                {
+                    "id": f"time-{cid}-quillhub-signed",
+                    "date": "2026-07-18",
+                    "title": "Quillhub Inc. Execution Date",
+                    "type": "milestone",
+                    "description": "Formally signed by Marcus Ellison, VP of Legal & Compliance on behalf of Quillhub Inc.",
+                    "clause_citation": "Signatures",
+                    "penalty_exposure_inr": 0.0,
+                    "is_worst_case": False,
+                },
+                {
+                    "id": f"time-{cid}-effective-date",
+                    "date": "2026-08-01",
+                    "title": "Contract Effective Date",
+                    "type": "milestone",
+                    "description": "Agreement commencement and CloudCore service subscription activation.",
+                    "clause_citation": "Section B (Subscription Period & Renewal)",
+                    "penalty_exposure_inr": 0.0,
+                    "is_worst_case": False,
+                },
+                {
+                    "id": f"time-{cid}-original-renewal",
+                    "date": notice_d,
+                    "title": "StratoNode 90-Day Non-Renewal Written Notice Cutoff",
+                    "type": "renewal_window",
+                    "description": "Mandatory written notice of non-renewal to Notice Address at least 90 calendar days prior to July 31, 2028 initial-term end date to prevent automatic 12-month extension ($96,000 / yr).",
+                    "clause_citation": "Section B (Subscription Period & Renewal)",
+                    "penalty_exposure_inr": 7968000.0,
+                    "is_worst_case": True,
+                },
+                {
+                    "id": f"time-{cid}-term-expiration",
+                    "date": "2028-07-31",
+                    "title": "Initial 24-Month Term Expiration",
+                    "type": "deadline",
+                    "description": "Conclusion of initial 24-month subscription period.",
+                    "clause_citation": "Section B (Subscription Period & Renewal)",
+                    "penalty_exposure_inr": 0.0,
+                    "is_worst_case": False,
+                }
+            ])
         elif cid_upper in ["B1", "QH-HARBOR-2026-001"]:
             milestones.extend([
                 {

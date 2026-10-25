@@ -8,14 +8,74 @@ CANONICAL_OBLIGATIONS = {
         {
             "id": "ob-a1-notice",
             "contractId": "cnt-A1",
-            "title": "Serve Formal 60-Day Non-Renewal Written Notice",
-            "description": "Must dispatch notice via registered mail prior to June 1, 2028 to prevent automatic 12-month rollover ($180,000 / yr).",
-            "dueDate": "2028-06-01",
+            "title": "Deliver Written Non-Renewal Notice (90-Day Requirement)",
+            "description": "Written notice of non-renewal must be delivered to StratoNode Inc., Attn: Legal Department (8500 Cascade Boulevard, Suite 200, Portland, OR 97204, legal@stratonode.com) at least 90 days before the initial term expires on July 31, 2028 to prevent automatic 12-month rollover ($96,000 / yr).",
+            "dueDate": "2028-05-02",
             "status": "upcoming",
-            "severity": "high",
+            "severity": "critical",
             "financialExposureINR": 7968000.0,
             "responsibleParty": "internal",
-            "clauseReference": "Section B (Subscription Period & Renewal)"
+            "clauseReference": "Section B (Subscription Period and Renewal)"
+        },
+        {
+            "id": "ob-a1-monthly-fee",
+            "contractId": "cnt-A1",
+            "title": "Monthly CloudCore Infrastructure Fee Remittance",
+            "description": "Invoices issued on the first business day of each calendar month; payment due within 30 days of invoice date ($8,000.00 / month; 1.5% late interest).",
+            "dueDate": "Monthly Net 30",
+            "status": "upcoming",
+            "severity": "medium",
+            "financialExposureINR": 664000.0,
+            "responsibleParty": "internal",
+            "clauseReference": "Section C (Fees and Payment)"
+        },
+        {
+            "id": "ob-a1-disruption-notice",
+            "contractId": "cnt-A1",
+            "title": "Unplanned Service Disruption Notification (Within 4 Hours)",
+            "description": "StratoNode must use commercially reasonable efforts to notify Quillhub's Operations contact (ops@quillhub.io) within four (4) hours of becoming aware of an unplanned service disruption affecting CloudCore.",
+            "dueDate": "Within 4 hours of disruption awareness",
+            "status": "upcoming",
+            "severity": "high",
+            "financialExposureINR": 0.0,
+            "responsibleParty": "counterparty",
+            "clauseReference": "Section I.1 (Incident Notification to Customer)"
+        },
+        {
+            "id": "ob-a1-security-incident",
+            "contractId": "cnt-A1",
+            "title": "Security Incident Notification (Within 72 Hours)",
+            "description": "StratoNode must notify Quillhub within 72 hours of becoming aware of a Security Incident in accordance with Section 3.3 of the Standard Terms.",
+            "dueDate": "Within 72 hours of awareness",
+            "status": "upcoming",
+            "severity": "high",
+            "financialExposureINR": 0.0,
+            "responsibleParty": "counterparty",
+            "clauseReference": "Section F (Data and Security)"
+        },
+        {
+            "id": "ob-a1-subprocessor-notice",
+            "contractId": "cnt-A1",
+            "title": "Subprocessor Modification Advance Notice (At Least 30 Days)",
+            "description": "StratoNode must maintain a list of subprocessors and notify Quillhub of any changes at least 30 days in advance.",
+            "dueDate": "At least 30 days prior to changes",
+            "status": "upcoming",
+            "severity": "medium",
+            "financialExposureINR": 0.0,
+            "responsibleParty": "counterparty",
+            "clauseReference": "Section I.3 (Subprocessors)"
+        },
+        {
+            "id": "ob-a1-migration-assistance",
+            "contractId": "cnt-A1",
+            "title": "Post-Termination Migration Assistance (Up to 90 Days)",
+            "description": "Upon expiration or termination, StratoNode must provide reasonable migration assistance to Quillhub for up to 90 days following effective date of termination at StratoNode's then-current professional services rates.",
+            "dueDate": "Within 90 days post-termination",
+            "status": "upcoming",
+            "severity": "low",
+            "financialExposureINR": 0.0,
+            "responsibleParty": "counterparty",
+            "clauseReference": "Section I.2 (Migration Assistance)"
         }
     ],
     "A2": [
@@ -168,13 +228,14 @@ CANONICAL_OBLIGATIONS = {
 
 CANONICAL_METADATA = {
     "A1": {
-        "startDate": "2026-06-01",
-        "endDate": "2028-05-31",
-        "renewalDate": "2028-04-01",
+        "startDate": "2026-08-01",
+        "endDate": "2028-07-31",
+        "renewalDate": "2028-05-02",
         "durationMonths": 24,
-        "autoRenewalConditions": "Automatic 12-month renewal unless 60 days prior written notice is served via registered mail.",
-        "paymentSchedule": "Annual advance fee of $180,000 due Net 30.",
-        "totalValueINR": 14940000.0,
+        "autoRenewalConditions": "Automatic renewal for successive 12-month periods unless written notice of non-renewal is delivered to Notice Address at least 90 days before the end of the current subscription period (deadline: May 2, 2028).",
+        "paymentSchedule": "Monthly Fee: $8,000.00 (Annualized: $96,000.00). Invoices issued on first business day of each month; payment due within 30 days of invoice date. Overdue amounts accrue 1.5% interest per month.",
+        "jurisdiction": "State of Oregon; Chosen Courts: Federal and state courts in Multnomah County, Oregon",
+        "totalValueINR": 15936000.0,
         "financialExposureINR": 7968000.0
     },
     "A2": {
