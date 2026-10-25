@@ -202,7 +202,7 @@ class ContractWarRoomWorkflow:
             clarification_loops_count=len(clarification_records),
             dispute_loops_count=len(dispute_records),
             bounded_limits_enforced=True,
-            zero_hallucination_verified_count=len([c for c in thor_output.citations if c.verified]),
+            zero_hallucination_verified_count=len([c for c in thor_output.verbatim_citations if c.verified]),
             token_estimate=1250,
             clarification_records=clarification_records,
             dispute_records=dispute_records

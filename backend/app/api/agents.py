@@ -1,47 +1,15 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
+import uuid
+from datetime import datetime
+
 from app.models.schemas import AgentInfo, AgentMessage, WorkflowStep
 from app.data.seed_data import SEED_AGENTS
 from app.services.war_room_state import war_room_state
 from app.services.llm import llm_service
 
 router = APIRouter(prefix="", tags=["Agents & War Room"])
-
-def record_workflow_execution(result):
-    """Appends live agent deliberations into war_room_state.messages."""
-    try:
-        import uuid
-        from datetime import datetime
-        now = datetime.utcnow().isoformat() + "Z"
-        cid = getattr(result, "contract_id", "DOC")
-
-        if hasattr(result, "thor") and result.thor:
-            war_room_state.messages.insert(0, {
-                "id": f"msg-{uuid.uuid4().hex[:6]}",
-                "agentId": "thor",
-                "agentName": "Thor",
-                "stage": "extraction",
-                "timestamp": now,
-                "title": f"Clause Extraction: {getattr(result, 'contract_title', cid)}",
-                "message": f"Extracted {len(result.thor.clauses)} verbatim clauses and {len(result.thor.obligations)} obligations.",
-                "contractId": cid,
-                "tags": ["Thor Extracted", "Verbatim Grounding"]
-            })
-        if hasattr(result, "odin") and result.odin:
-            war_room_state.messages.insert(0, {
-                "id": f"msg-{uuid.uuid4().hex[:6]}",
-                "agentId": "odin",
-                "agentName": "Odin",
-                "stage": "synthesis",
-                "timestamp": now,
-                "title": f"Odin Final Actions: {cid}",
-                "message": f"Synthesized findings into {len(result.odin.final_actions)} ready-to-dispatch legal actions.",
-                "contractId": cid,
-                "tags": ["Final Directive", "Executive Action"]
-            })
-    except Exception:
-        pass
 
 class ReExtractRequest(BaseModel):
     contract_id: str
@@ -56,6 +24,95 @@ class ChatRequest(BaseModel):
     message: str
     contract_id: Optional[str] = "A2"
     context: Optional[str] = None
+
+
+def record_workflow_execution(result):
+    """Appends live agent deliberations to war_room_state from a WorkflowExecutionResult."""
+    try:
+        now = datetime.utcnow().isoformat() + "Z"
+        cid = getattr(result, "contract_id", "DOC")
+        contract_title = getattr(result, "contract_title", None) or cid
+
+        # Thor message
+        if hasattr(result, "thor") and result.thor:
+            thor_msg = {
+                "id": f"msg-{uuid.uuid4().hex[:6]}",
+                "agentId": "thor",
+                "agentName": "Thor",
+                "stage": "extraction",
+                "timestamp": now,
+                "title": f"Clause Extraction: {contract_title}",
+                "message": f"Extracted {len(result.thor.clauses)} verbatim clauses and {len(result.thor.obligations)} obligations with unhallucinated citations.",
+                "contractId": cid,
+                "tags": ["Thor Extracted", "Verbatim Grounding"]
+            }
+            war_room_state.messages.insert(0, thor_msg)
+
+        # Loki message
+        if hasattr(result, "loki") and result.loki:
+            loki_msg = {
+                "id": f"msg-{uuid.uuid4().hex[:6]}",
+                "agentId": "loki",
+                "agentName": "Loki",
+                "stage": "challenge",
+                "timestamp": now,
+                "title": f"Adversarial Challenge: {cid}",
+                "message": f"Generated {len(result.loki.risks_and_claims)} adversarial risk claims and stress-tested SLA boundaries.",
+                "contractId": cid,
+                "disagreementLevel": "high" if len(result.loki.risks_and_claims) > 1 else "medium",
+                "requiresHumanReview": True
+            }
+            war_room_state.messages.insert(0, loki_msg)
+
+        # Heimdall message
+        if hasattr(result, "heimdall") and result.heimdall:
+            heimdall_msg = {
+                "id": f"msg-{uuid.uuid4().hex[:6]}",
+                "agentId": "heimdall",
+                "agentName": "Heimdall",
+                "stage": "verification",
+                "timestamp": now,
+                "title": f"Telemetry Fact-Check: {cid}",
+                "message": f"Sentinel audit: {len(result.heimdall.yes_branch_claims)} confirmed breaches (YES), {len(result.heimdall.no_branch_claims)} unverified claims (NO).",
+                "contractId": cid
+            }
+            war_room_state.messages.insert(0, heimdall_msg)
+
+        # Tyr message
+        if hasattr(result, "tyr") and result.tyr:
+            tyr_msg = {
+                "id": f"msg-{uuid.uuid4().hex[:6]}",
+                "agentId": "tyr",
+                "agentName": "Tyr",
+                "stage": "ruling",
+                "timestamp": now,
+                "title": f"Binding Arbiter Rulings: {cid}",
+                "message": f"Rendered {len(result.tyr.rulings)} binding rulings on contested claims and notice protocols.",
+                "contractId": cid,
+                "requiresHumanReview": False
+            }
+            war_room_state.messages.insert(0, tyr_msg)
+
+        # Odin message
+        if hasattr(result, "odin") and result.odin:
+            exposure_text = ""
+            if hasattr(result, "norns") and result.norns:
+                exposure_text = f" Total exposure: ₹{result.norns.worst_case_exposure_inr:,.2f}."
+            odin_msg = {
+                "id": f"msg-{uuid.uuid4().hex[:6]}",
+                "agentId": "odin",
+                "agentName": "Odin",
+                "stage": "synthesis",
+                "timestamp": now,
+                "title": f"Odin Final Actions: {cid}",
+                "message": f"Synthesized Council findings into {len(result.odin.final_actions)} ready-to-dispatch legal actions.{exposure_text}",
+                "contractId": cid,
+                "tags": ["Final Directive", "Executive Action"]
+            }
+            war_room_state.messages.insert(0, odin_msg)
+    except Exception as e:
+        print(f"Error recording workflow execution: {e}")
+
 
 @router.get("/agents", response_model=List[AgentInfo])
 def get_agents():
@@ -136,6 +193,7 @@ def run_war_room_workflow(
         clock_date=clock_date,
         company_context=war_room_state.context_text
     )
+    record_workflow_execution(result)
     return result
 
 @router.post("/chat")
