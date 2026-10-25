@@ -43,7 +43,24 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
     }
 
     setFile(selectedFile)
-    if (!title) {
+    const baseName = selectedFile.name.replace(/\.(pdf|txt)$/i, '').toUpperCase().trim()
+
+    const canonicalInfo: Record<string, { title: string; counterparty: string; type: string }> = {
+      A1: { title: 'Cloud Service Agreement Cover Page (A1)', counterparty: 'StratoNode Inc.', type: 'Master Cloud Infrastructure Agreement' },
+      A2: { title: 'StratoNode CloudCore Service Level Agreement (A2)', counterparty: 'StratoNode Inc.', type: 'Service Level Agreement (SLA)' },
+      A3: { title: 'Amendment No. 1 to Service Level Agreement (A3)', counterparty: 'StratoNode Inc.', type: 'SLA Amendment' },
+      B1: { title: 'Cloud Service Agreement — Harbor Retail (B1)', counterparty: 'Harbor Retail Group LLC', type: 'Enterprise Customer MSA' },
+      B2: { title: 'Data Protection Addendum — Harbor Retail (B2)', counterparty: 'Harbor Retail Group LLC', type: 'Data Protection Addendum (DPA)' },
+      C1: { title: 'Cloud Service Agreement — Vantage Logistics (C1)', counterparty: 'Vantage Logistics Corp.', type: 'Logistics Customer Agreement' },
+      D1: { title: 'Independent Contractor Agreement — Pixelwright (D1)', counterparty: 'Pixelwright Design Studio LLC', type: 'Subcontractor / Development SOW' },
+      STD: { title: 'Common Paper Cloud Service Standard Terms (STD)', counterparty: 'Quillhub Master Terms', type: 'Canonical Standard Terms' },
+    }
+
+    if (canonicalInfo[baseName]) {
+      setTitle(canonicalInfo[baseName].title)
+      setCounterparty(canonicalInfo[baseName].counterparty)
+      setContractType(canonicalInfo[baseName].type)
+    } else if (!title) {
       setTitle(selectedFile.name.replace(/\.(pdf|txt)$/i, '').replace(/[-_]/g, ' '))
     }
   }

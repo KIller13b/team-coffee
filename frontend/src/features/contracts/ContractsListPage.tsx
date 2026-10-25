@@ -4,6 +4,7 @@ import {
   Search,
   Plus,
   ChevronRight,
+  Trash2,
 } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
@@ -124,6 +125,22 @@ export const ContractsListPage: React.FC = () => {
             <option value="title">Sort by Title</option>
           </select>
 
+          {/* Clear All Button */}
+          {contracts.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to clear all uploaded contracts?')) {
+                  await contractsService.clearContracts()
+                }
+              }}
+              className="text-xs text-red-400 hover:text-red-300 border-red-500/30 hover:border-red-500/60"
+            >
+              Clear All
+            </Button>
+          )}
+
           {/* Add Contract Button */}
           <Button
             variant="primary"
@@ -148,9 +165,16 @@ export const ContractsListPage: React.FC = () => {
       </div>
 
       {/* Contracts Table */}
-      {sortedContracts.length === 0 ? (
+      {contracts.length === 0 ? (
         <EmptyState
-          title="No contracts found"
+          title="Contract Repository is Clean"
+          description="No contracts are loaded by default. Upload your contract documents (PDF or TXT) to begin Thor clause extraction and multi-agent risk synthesis."
+          actionLabel="Upload Contract"
+          onAction={() => setIsUploadOpen(true)}
+        />
+      ) : sortedContracts.length === 0 ? (
+        <EmptyState
+          title="No contracts matching filters"
           description="No contracts match your search and filter criteria. Try clearing filters or upload a new contract."
           actionLabel="Clear Filters"
           onAction={() => {
@@ -244,12 +268,25 @@ export const ContractsListPage: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 text-right">
-                      <Link to={`/contracts/${contract.id}`}>
-                        <Button variant="ghost" size="sm" className="h-7 px-2.5 text-xs text-teal-300 hover:text-white">
-                          <span>Inspect</span>
-                          <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                        </Button>
-                      </Link>
+                      <div className="flex items-center justify-end gap-1">
+                        <Link to={`/contracts/${contract.id}`}>
+                          <Button variant="ghost" size="sm" className="h-7 px-2.5 text-xs text-teal-300 hover:text-white">
+                            <span>Inspect</span>
+                            <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                          </Button>
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm(`Delete "${contract.title}"?`)) {
+                              await contractsService.deleteContract(contract.id)
+                            }
+                          }}
+                          className="p-1.5 text-[#64748B] hover:text-red-400 rounded transition-colors"
+                          title="Delete contract"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

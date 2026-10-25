@@ -61,58 +61,67 @@ export const RiskDonutChart: React.FC<RiskDonutChartProps> = ({ contracts }) => 
     <Card className="flex flex-col h-full">
       <CardHeader>
         <CardTitle>Portfolio Risk Distribution</CardTitle>
-        <span className="text-xs text-[#94A3B8] font-mono">10 Evaluated</span>
+        <span className="text-xs text-[#94A3B8] font-mono">{totalContracts} Indexed</span>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col items-center justify-center pt-2">
-        {/* Donut Chart with Centered Total */}
-        <div className="relative w-full h-48 flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Tooltip content={<CustomTooltip totalContracts={totalContracts} />} />
-              <Pie
-                data={chartData}
-                innerRadius={54}
-                outerRadius={78}
-                paddingAngle={4}
-                dataKey="value"
-                stroke="#0D2033"
-                strokeWidth={3}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-
-          {/* Centered Total Label */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-2xl font-bold text-[#F1F5F9] tracking-tight">
-              {totalContracts}
-            </span>
-            <span className="text-[10px] uppercase tracking-wider text-[#94A3B8] font-medium">
-              Contracts
-            </span>
+        {totalContracts === 0 ? (
+          <div className="py-12 text-center text-xs text-[#94A3B8]">
+            <p className="font-medium text-[#F1F5F9]">No contracts indexed</p>
+            <p className="mt-1">Upload contracts to calculate risk distribution.</p>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Donut Chart with Centered Total */}
+            <div className="relative w-full h-48 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip content={<CustomTooltip totalContracts={totalContracts} />} />
+                  <Pie
+                    data={chartData}
+                    innerRadius={54}
+                    outerRadius={78}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="#0D2033"
+                    strokeWidth={3}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
 
-        {/* Legend */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 w-full pt-3 border-t border-[#1D344B]/60 text-xs mt-1">
-          {chartData.map((item) => (
-            <div key={item.key} className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 truncate">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[#94A3B8] truncate">{item.name}</span>
+              {/* Centered Total Label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-bold text-[#F1F5F9] tracking-tight">
+                  {totalContracts}
+                </span>
+                <span className="text-[10px] uppercase tracking-wider text-[#94A3B8] font-medium">
+                  Contracts
+                </span>
               </div>
-              <span className="font-semibold text-[#F1F5F9] font-mono pl-2">
-                {item.value}
-              </span>
             </div>
-          ))}
-        </div>
+
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 w-full pt-3 border-t border-[#1D344B]/60 text-xs mt-1">
+              {chartData.map((item) => (
+                <div key={item.key} className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-[#94A3B8] truncate">{item.name}</span>
+                  </div>
+                  <span className="font-semibold text-[#F1F5F9] font-mono pl-2">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )

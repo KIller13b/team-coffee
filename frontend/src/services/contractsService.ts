@@ -13,8 +13,8 @@ import { MOCK_EXTERNAL_EVENTS } from '../data/mockEvents'
 import { MOCK_REPORTS } from '../data/mockReports'
 import { apiRequest } from './apiClient'
 
-// In-memory state for local additions (e.g. uploading contracts or changing action status)
-let contractsState = [...MOCK_CONTRACTS]
+// In-memory state for local additions (contracts must be uploaded by user)
+let contractsState: Contract[] = []
 let risksState = [...MOCK_RISKS]
 let reportsState = [...MOCK_REPORTS]
 
@@ -31,8 +31,8 @@ export const contractsService = {
       const backendData = Array.isArray(res.data) ? res.data : []
       const seenIds = new Set(backendData.map((c) => c.id))
       const merged = [
-        ...localUploads.filter((c) => !seenIds.has(c.id)),
         ...backendData,
+        ...localUploads.filter((c) => !seenIds.has(c.id)),
       ]
       contractsState = merged
       return merged
@@ -136,6 +136,33 @@ export const contractsService = {
     }
 
     return contract
+  },
+
+  async clearContracts(): Promise<void> {
+    contractsState = []
+    try {
+      localStorage.removeItem('odin_uploaded_contracts')
+    } catch {}
+    try {
+      await apiRequest('/contracts', { method: 'DELETE' })
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('odin:contract-uploaded'))
+    }
+  },
+
+  async deleteContract(id: string): Promise<void> {
+    contractsState = contractsState.filter((c) => c.id !== id)
+    try {
+      const localUploads: Contract[] = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+      localStorage.setItem('odin_uploaded_contracts', JSON.stringify(localUploads.filter((c) => c.id !== id)))
+    } catch {}
+    try {
+      await apiRequest(`/contracts/${id}`, { method: 'DELETE' })
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('odin:contract-uploaded'))
+    }
   },
 
   // Risks
