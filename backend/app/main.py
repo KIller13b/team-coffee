@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from app.api.contracts import router as contracts_router
 from app.api.risks import router as risks_router
 from app.api.agents import router as agents_router
+from app.api.timeline import router as timeline_router
 
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
@@ -32,6 +33,7 @@ app.add_middleware(
 app.include_router(contracts_router, prefix="/api")
 app.include_router(risks_router, prefix="/api")
 app.include_router(agents_router, prefix="/api")
+app.include_router(timeline_router, prefix="/api")
 
 @app.get("/")
 def root():
