@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { LoadingState } from '../../components/ui/LoadingState'
+import { EmptyState } from '../../components/ui/EmptyState'
 import { contractsService } from '../../services/contractsService'
 import { ContractReport, RecommendedAction } from '../../types/report'
 import { formatINR, formatDate } from '../../lib/formatters'
@@ -26,6 +27,9 @@ export const ReportsPage: React.FC = () => {
         setIsLoading(true)
         const data = await contractsService.getReports()
         setReports(data)
+        if (data.length > 0) {
+          setSelectedReportId(data[0].id)
+        }
       } finally {
         setIsLoading(false)
       }
@@ -116,25 +120,32 @@ export const ReportsPage: React.FC = () => {
       )}
 
       {/* Scope Selector */}
-      <div className="flex items-center gap-2 border-b border-[#1D344B] pb-2 overflow-x-auto text-xs">
-        <span className="text-[#94A3B8] mr-2">Audit Scope:</span>
-        {reports.map((rep) => (
-          <button
-            key={rep.id}
-            onClick={() => setSelectedReportId(rep.id)}
-            className={`px-3 py-1.5 rounded-lg border font-medium transition-colors whitespace-nowrap cursor-pointer ${
-              selectedReportId === rep.id
-                ? 'bg-blue-600/20 text-teal-300 border-teal-500/40'
-                : 'bg-[#10263B] text-[#94A3B8] border-[#1D344B] hover:text-[#F1F5F9]'
-            }`}
-          >
-            {rep.title}
-          </button>
-        ))}
-      </div>
+      {reports.length > 0 && (
+        <div className="flex items-center gap-2 border-b border-[#1D344B] pb-2 overflow-x-auto text-xs">
+          <span className="text-[#94A3B8] mr-2">Audit Scope:</span>
+          {reports.map((rep) => (
+            <button
+              key={rep.id}
+              onClick={() => setSelectedReportId(rep.id)}
+              className={`px-3 py-1.5 rounded-lg border font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                selectedReportId === rep.id
+                  ? 'bg-blue-600/20 text-teal-300 border-teal-500/40'
+                  : 'bg-[#10263B] text-[#94A3B8] border-[#1D344B] hover:text-[#F1F5F9]'
+              }`}
+            >
+              {rep.title}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Report Preview Document */}
-      {activeReport && (
+      {!activeReport ? (
+        <EmptyState
+          title="No Audit Reports Available"
+          description="Executive contract intelligence dossiers are synthesized as contracts are analyzed by Heimdall, Mimir, and Odin."
+        />
+      ) : (
         <div className="space-y-6">
           {/* Executive Overview Header */}
           <Card className="p-6 bg-gradient-to-br from-[#081727] via-[#0D2033] to-[#10263B]">

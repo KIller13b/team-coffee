@@ -43,6 +43,14 @@ export const contractsService = {
   },
 
   async getContractById(id: string): Promise<Contract | null> {
+    try {
+      const res = await apiRequest<Contract | null>(`/contracts/${id}`)
+      if (res.data) {
+        contractsState = [res.data, ...contractsState.filter((c) => c.id !== id)]
+        return res.data
+      }
+    } catch {}
+
     const existing = contractsState.find((c) => c.id === id)
     if (existing) return existing
 
@@ -52,10 +60,7 @@ export const contractsService = {
       if (match) return match
     } catch {}
 
-    const res = await apiRequest<Contract | null>(`/contracts/${id}`, {}, () => {
-      return contractsState.find((c) => c.id === id) || null
-    })
-    return res.data
+    return null
   },
 
   async uploadContractFile(

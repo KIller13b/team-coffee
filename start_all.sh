@@ -13,7 +13,7 @@ sleep 1
 # Start Backend
 echo "Starting FastAPI Backend Microservice on http://localhost:8000..."
 cd "$DIR/backend"
-PYTHONPATH=. "$DIR/backend/.venv/bin/uvicorn" app.main:app --host 0.0.0.0 --port 8000 &
+PYTHONPATH=. "$DIR/backend/.venv/bin/uvicorn" app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
 
 # Wait for backend to be ready

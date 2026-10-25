@@ -32,53 +32,63 @@ export const UpcomingDeadlines: React.FC<UpcomingDeadlinesProps> = ({ obligation
         </Link>
       </CardHeader>
 
-      <CardContent className="space-y-3 p-4">
-        {sorted.map((item) => {
-          const isOverdue = item.status === 'overdue' || new Date(item.dueDate) < new Date('2026-10-25')
-          const isCritical = item.severity === 'critical'
+      <CardContent className="space-y-3 p-4 flex-1 flex flex-col justify-center">
+        {sorted.length === 0 ? (
+          <div className="py-8 text-center text-xs text-[#94A3B8]">
+            <Clock className="w-8 h-8 text-[#64748B] mx-auto mb-2 opacity-50" />
+            <p className="font-semibold text-[#F1F5F9]">No Upcoming Deadlines</p>
+            <p className="text-[11px] text-[#64748B] mt-1">
+              Upload commercial contracts or trigger Heimdall extraction to populate temporal milestones.
+            </p>
+          </div>
+        ) : (
+          sorted.map((item) => {
+            const isOverdue = item.status === 'overdue' || new Date(item.dueDate) < new Date('2026-10-25')
+            const isCritical = item.severity === 'critical'
 
-          return (
-            <div
-              key={item.id}
-              className={`p-3 rounded-lg border transition-all ${
-                isOverdue
-                  ? 'bg-red-500/10 border-red-500/30'
-                  : isCritical
-                  ? 'bg-orange-500/5 border-orange-500/30'
-                  : 'bg-[#10263B]/60 border-[#1D344B] hover:border-teal-500/30'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-[#F1F5F9] truncate">
-                      {item.title}
-                    </span>
-                    {isOverdue && (
-                      <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/20 px-1 rounded flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" /> Overdue
+            return (
+              <div
+                key={item.id}
+                className={`p-3 rounded-lg border transition-all ${
+                  isOverdue
+                    ? 'bg-red-500/10 border-red-500/30'
+                    : isCritical
+                    ? 'bg-orange-500/5 border-orange-500/30'
+                    : 'bg-[#10263B]/60 border-[#1D344B] hover:border-teal-500/30'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold text-[#F1F5F9] truncate">
+                        {item.title}
                       </span>
-                    )}
+                      {isOverdue && (
+                        <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/20 px-1 rounded flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> Overdue
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
+                      {item.contractName || item.clauseReference}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
-                    {item.contractName || item.clauseReference}
-                  </p>
+
+                  <Badge risk={item.severity as RiskLevel} size="xs" dot>
+                    {item.severity}
+                  </Badge>
                 </div>
 
-                <Badge risk={item.severity as RiskLevel} size="xs" dot>
-                  {item.severity}
-                </Badge>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#1D344B]/40 text-[11px] text-[#94A3B8]">
+                  <span>Due: <span className="text-[#F1F5F9] font-mono">{formatDate(item.dueDate)}</span></span>
+                  <span className={isOverdue ? 'text-red-400 font-semibold' : 'text-teal-300'}>
+                    {formatRelativeTime(item.dueDate)}
+                  </span>
+                </div>
               </div>
-
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#1D344B]/40 text-[11px] text-[#94A3B8]">
-                <span>Due: <span className="text-[#F1F5F9] font-mono">{formatDate(item.dueDate)}</span></span>
-                <span className={isOverdue ? 'text-red-400 font-semibold' : 'text-teal-300'}>
-                  {formatRelativeTime(item.dueDate)}
-                </span>
-              </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </CardContent>
     </Card>
   )

@@ -67,11 +67,12 @@ export const RisksPage: React.FC = () => {
 
   // Filter list
   const filteredRisks = risks.filter((r) => {
+    const q = searchQuery.toLowerCase()
     const matchesSearch =
-      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.explanation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.contractName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.counterparty.toLowerCase().includes(searchQuery.toLowerCase())
+      (r.title || '').toLowerCase().includes(q) ||
+      (r.explanation || (r as any).summary || '').toLowerCase().includes(q) ||
+      (r.contractName || '').toLowerCase().includes(q) ||
+      (r.counterparty || '').toLowerCase().includes(q)
 
     const matchesSeverity = severityFilter === 'all' || r.severity === severityFilter
     const matchesStatus = statusFilter === 'all' || r.status === statusFilter
@@ -252,7 +253,7 @@ export const RisksPage: React.FC = () => {
                     </h3>
 
                     <p className="text-xs text-[#94A3B8] line-clamp-2 leading-relaxed">
-                      {risk.explanation}
+                      {risk.explanation || (risk as any).summary || 'Contractual liability analyzed by Loki.'}
                     </p>
                   </div>
 
@@ -274,13 +275,13 @@ export const RisksPage: React.FC = () => {
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1D344B]/60 text-[11px] text-[#64748B] flex-wrap gap-2">
                   <div className="flex items-center gap-3">
                     <span className="text-[#94A3B8]">
-                      Contract: <strong>{risk.contractName}</strong>
+                      Contract: <strong>{risk.contractName || risk.contractId}</strong>
                     </span>
                     <span>•</span>
-                    <span>Citation: <strong className="text-teal-300 font-mono">{risk.evidenceClause}</strong></span>
+                    <span>Citation: <strong className="text-teal-300 font-mono">{risk.evidenceClause || (risk as any).citation || 'Verified Section'}</strong></span>
                   </div>
                   <span className="font-mono text-[#64748B]">
-                    Flagged by Agent {risk.identifiedBy.toUpperCase()}
+                    Flagged by Agent {(risk.identifiedBy || 'loki').toUpperCase()}
                   </span>
                 </div>
               </Card>

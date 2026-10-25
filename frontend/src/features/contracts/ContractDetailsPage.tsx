@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Building2,
   Scale,
+  Clock,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
@@ -130,8 +131,8 @@ export const ContractDetailsPage: React.FC = () => {
       <div className="flex items-center gap-1 border-b border-[#1D344B] overflow-x-auto pb-1 text-xs">
         {[
           { key: 'overview', label: 'Overview & Metadata' },
-          { key: 'clauses', label: `Extracted Clauses (${contract.clauses.length})` },
-          { key: 'obligations', label: `Obligations (${contract.obligations.length})` },
+          { key: 'clauses', label: `Extracted Clauses (${contract.clauses?.length || 0})` },
+          { key: 'obligations', label: `Obligations (${contract.obligations?.length || 0})` },
           { key: 'timeline', label: 'Timeline Milestones' },
           { key: 'related', label: `Related Contracts (${relatedContracts.length})` },
         ].map((tab) => (
@@ -160,11 +161,11 @@ export const ContractDetailsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-xs text-[#F1F5F9] leading-relaxed">
-                  {contract.summary}
+                  {contract.summary || 'Verified document indexed into the Odin Multi-Agent War Room.'}
                 </p>
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {contract.tags.map((tag, i) => (
+                  {(contract.tags || []).map((tag, i) => (
                     <span
                       key={i}
                       className="text-[11px] px-2 py-0.5 rounded bg-[#10263B] text-teal-300 border border-[#1D344B]"
@@ -187,7 +188,7 @@ export const ContractDetailsPage: React.FC = () => {
                     Auto-Renewal Conditions
                   </h4>
                   <div className="p-3 rounded-lg bg-[#10263B] border border-[#1D344B] text-[#94A3B8] leading-relaxed font-mono">
-                    {contract.autoRenewalConditions}
+                    {contract.autoRenewalConditions || 'No automatic renewal covenants detected.'}
                   </div>
                 </div>
 
@@ -196,7 +197,7 @@ export const ContractDetailsPage: React.FC = () => {
                     Payment & Billing Terms
                   </h4>
                   <div className="p-3 rounded-lg bg-[#10263B] border border-[#1D344B] text-[#94A3B8] leading-relaxed font-mono">
-                    {contract.paymentSchedule}
+                    {contract.paymentSchedule || 'Standard billing terms apply / not specified.'}
                   </div>
                 </div>
               </CardContent>
@@ -264,57 +265,70 @@ export const ContractDetailsPage: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-[#1D344B] bg-[#081727]/70 text-[#94A3B8] uppercase tracking-wider font-semibold text-[10px]">
-                    <th className="py-3 px-4">Field / Covenant</th>
-                    <th className="py-3 px-4">Extracted Value</th>
-                    <th className="py-3 px-4">Clause Citation</th>
-                    <th className="py-3 px-4">Category</th>
-                    <th className="py-3 px-4">Thor Confidence</th>
-                    <th className="py-3 px-4 text-right">Evidence Anchor</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1D344B]/60 text-[#F1F5F9]">
-                  {contract.clauses.map((clause) => (
-                    <tr
-                      key={clause.id}
-                      onClick={() => setSelectedClause(clause)}
-                      className="hover:bg-[#10263B]/60 transition-colors cursor-pointer group"
-                    >
-                      <td className="py-3 px-4 font-semibold text-[#F1F5F9] group-hover:text-teal-300">
-                        {clause.field || (clause as any).title || 'Contract Covenant'}
-                      </td>
-                      <td className="py-3 px-4 max-w-xs text-[#94A3B8] truncate">
-                        {clause.extractedValue || (clause as any).text || (clause as any).title || 'Extracted term'}
-                      </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-teal-300">
-                        {clause.clauseCitation || (clause as any).section || 'Referenced Section'}
-                      </td>
-                      <td className="py-3 px-4 capitalize text-[#94A3B8]">
-                        {clause.category || (clause as any).type || 'General'}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[11px] text-[#F1F5F9]">
-                            {formatConfidence(clause.confidenceScore)}
-                          </span>
-                          <div className="w-12">
-                            <ProgressBar value={clause.confidenceScore * 100} size="xs" color="teal" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-[11px] text-teal-400 group-hover:underline">
-                          View Citation →
-                        </span>
-                      </td>
+            {(!contract.clauses || contract.clauses.length === 0) ? (
+              <div className="p-6">
+                <EmptyState
+                  title="No Clauses Extracted"
+                  description={
+                    contract.tags?.includes('Non-Contractual')
+                      ? 'Zero commercial clauses detected. Verified as non-contractual content under Zero Hallucination policy (NFR2).'
+                      : 'No clauses have been extracted for this document yet.'
+                  }
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#1D344B] bg-[#081727]/70 text-[#94A3B8] uppercase tracking-wider font-semibold text-[10px]">
+                      <th className="py-3 px-4">Field / Covenant</th>
+                      <th className="py-3 px-4">Extracted Value</th>
+                      <th className="py-3 px-4">Clause Citation</th>
+                      <th className="py-3 px-4">Category</th>
+                      <th className="py-3 px-4">Thor Confidence</th>
+                      <th className="py-3 px-4 text-right">Evidence Anchor</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#1D344B]/60 text-[#F1F5F9]">
+                    {contract.clauses.map((clause) => (
+                      <tr
+                        key={clause.id}
+                        onClick={() => setSelectedClause(clause)}
+                        className="hover:bg-[#10263B]/60 transition-colors cursor-pointer group"
+                      >
+                        <td className="py-3 px-4 font-semibold text-[#F1F5F9] group-hover:text-teal-300">
+                          {clause.field || (clause as any).title || 'Contract Covenant'}
+                        </td>
+                        <td className="py-3 px-4 max-w-xs text-[#94A3B8] truncate">
+                          {clause.extractedValue || (clause as any).text || (clause as any).title || 'Extracted term'}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-teal-300">
+                          {clause.clauseCitation || (clause as any).section || 'Referenced Section'}
+                        </td>
+                        <td className="py-3 px-4 capitalize text-[#94A3B8]">
+                          {clause.category || (clause as any).type || 'General'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[11px] text-[#F1F5F9]">
+                              {formatConfidence(clause.confidenceScore)}
+                            </span>
+                            <div className="w-12">
+                              <ProgressBar value={clause.confidenceScore * 100} size="xs" color="teal" />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-[11px] text-teal-400 group-hover:underline">
+                            View Citation →
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -322,25 +336,36 @@ export const ContractDetailsPage: React.FC = () => {
       {/* Tab 3: Obligations */}
       {activeTab === 'obligations' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {contract.obligations.map((ob) => (
-              <Card key={ob.id} className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h4 className="text-xs font-semibold text-[#F1F5F9]">{ob.title}</h4>
-                  <Badge risk={ob.severity} size="xs" dot>
-                    {ob.severity}
-                  </Badge>
-                </div>
-                <p className="text-xs text-[#94A3B8] leading-relaxed">
-                  {ob.description}
-                </p>
-                <div className="pt-2 border-t border-[#1D344B]/60 flex items-center justify-between text-[11px] text-[#94A3B8]">
-                  <span>Due Date: <strong className="text-[#F1F5F9] font-mono">{formatDate(ob.dueDate)}</strong></span>
-                  <span>Exposure: <strong className="text-amber-400 font-mono">{formatINR(ob.financialExposureINR, true)}</strong></span>
-                </div>
-              </Card>
-            ))}
-          </div>
+          {(!contract.obligations || contract.obligations.length === 0) ? (
+            <EmptyState
+              title="No Active Obligations"
+              description={
+                contract.tags?.includes('Non-Contractual')
+                  ? 'Zero legal obligations or liability covenants found in non-contractual document.'
+                  : 'No operational obligations or upcoming compliance deadlines detected.'
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {contract.obligations.map((ob) => (
+                <Card key={ob.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="text-xs font-semibold text-[#F1F5F9]">{ob.title}</h4>
+                    <Badge risk={ob.severity} size="xs" dot>
+                      {ob.severity}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-[#94A3B8] leading-relaxed">
+                    {ob.description}
+                  </p>
+                  <div className="pt-2 border-t border-[#1D344B]/60 flex items-center justify-between text-[11px] text-[#94A3B8]">
+                    <span>Due Date: <strong className="text-[#F1F5F9] font-mono">{formatDate(ob.dueDate)}</strong></span>
+                    <span>Exposure: <strong className="text-amber-400 font-mono">{formatINR(ob.financialExposureINR, true)}</strong></span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -353,23 +378,33 @@ export const ContractDetailsPage: React.FC = () => {
               Launch Interactive Timeline Simulator →
             </Link>
           </div>
-          <div className="relative border-l-2 border-teal-500/40 pl-6 space-y-6 ml-3">
-            {contract.obligations.map((ob) => (
-              <div key={ob.id} className="relative">
-                <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-[#081727] border-2 border-teal-400" />
-                <span className="text-[11px] font-mono text-teal-400 font-semibold block mb-0.5">
-                  {formatDate(ob.dueDate)}
-                </span>
-                <h5 className="text-xs font-bold text-[#F1F5F9]">{ob.title}</h5>
-                <p className="text-xs text-[#94A3B8] mt-1">{ob.description}</p>
-                <div className="flex items-center gap-3 mt-2 text-[11px] text-[#64748B]">
-                  <span>Reference: {ob.clauseReference}</span>
-                  <span>•</span>
-                  <span>Severity: <span className="text-amber-400 capitalize">{ob.severity}</span></span>
+          {(!contract.obligations || contract.obligations.length === 0) ? (
+            <div className="py-12 text-center text-xs text-[#94A3B8]">
+              <Clock className="w-8 h-8 text-[#64748B] mx-auto mb-2 opacity-50" />
+              <p className="font-semibold text-[#F1F5F9]">No Temporal Milestones</p>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                This document does not contain time-bound notice cutoffs or payment triggers.
+              </p>
+            </div>
+          ) : (
+            <div className="relative border-l-2 border-teal-500/40 pl-6 space-y-6 ml-3">
+              {contract.obligations.map((ob) => (
+                <div key={ob.id} className="relative">
+                  <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-[#081727] border-2 border-teal-400" />
+                  <span className="text-[11px] font-mono text-teal-400 font-semibold block mb-0.5">
+                    {formatDate(ob.dueDate)}
+                  </span>
+                  <h5 className="text-xs font-bold text-[#F1F5F9]">{ob.title}</h5>
+                  <p className="text-xs text-[#94A3B8] mt-1">{ob.description}</p>
+                  <div className="flex items-center gap-3 mt-2 text-[11px] text-[#64748B]">
+                    <span>Reference: {ob.clauseReference}</span>
+                    <span>•</span>
+                    <span>Severity: <span className="text-amber-400 capitalize">{ob.severity}</span></span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       )}
 

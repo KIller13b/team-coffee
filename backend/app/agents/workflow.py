@@ -197,4 +197,27 @@ def load_dataset_bundle(bundle_dir: str) -> Dict[str, Any]:
                             except Exception:
                                 pass
 
+    # Load payments ledger
+    payments_path = os.path.join(bundle_dir, "data", "payments_ledger.csv")
+    if os.path.exists(payments_path):
+        import csv
+        try:
+            with open(payments_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row.get("status") == "overdue":
+                        data["events"].append({
+                            "event_id": f"PAY-{row.get('date')}",
+                            "timestamp": f"{row.get('date')}T00:00:00Z",
+                            "channel": "payment_ledger",
+                            "from": row.get("from"),
+                            "to": row.get("to"),
+                            "subject": f"OVERDUE INVOICE: {row.get('reference')}",
+                            "body": f"Payment of ${row.get('amount')} from {row.get('from')} is OVERDUE as of {row.get('date')}.",
+                            "status": "overdue",
+                            "amount": row.get("amount")
+                        })
+        except Exception:
+            pass
+
     return data

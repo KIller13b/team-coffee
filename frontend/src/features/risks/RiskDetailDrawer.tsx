@@ -26,7 +26,7 @@ export const RiskDetailDrawer: React.FC<RiskDetailDrawerProps> = ({ risk, onClos
       isOpen={Boolean(risk)}
       onClose={onClose}
       title={risk.title}
-      subtitle={`Identified by Agent ${risk.identifiedBy.toUpperCase()} • ${risk.contractName}`}
+      subtitle={`Identified by Agent ${(risk.identifiedBy || 'loki').toUpperCase()} • ${risk.contractName || risk.contractId}`}
       width="lg"
     >
       <div className="space-y-6">
@@ -67,7 +67,7 @@ export const RiskDetailDrawer: React.FC<RiskDetailDrawerProps> = ({ risk, onClos
             Risk Mechanism & Factual Narrative
           </h4>
           <p className="text-xs text-[#F1F5F9] leading-relaxed p-3.5 rounded-xl bg-[#0D2033] border border-[#1D344B]">
-            {risk.explanation}
+            {risk.explanation || (risk as any).summary || 'Verified contractual risk identified by Loki.'}
           </p>
         </div>
 
@@ -78,10 +78,10 @@ export const RiskDetailDrawer: React.FC<RiskDetailDrawerProps> = ({ risk, onClos
             Supporting Clause Citation & Verbatim Excerpt
           </h4>
           <div className="p-3.5 rounded-xl bg-[#081727] border border-teal-500/30 font-mono text-xs text-[#F1F5F9] leading-relaxed">
-            "{risk.verbatimExcerpt}"
+            "{risk.verbatimExcerpt || risk.evidenceClause || (risk as any).citation || (risk.explanation ? risk.explanation.slice(0, 160) : 'Clause reference anchored by Thor')}"
           </div>
           <span className="text-[11px] text-[#64748B] block mt-1.5">
-            Citation reference: <strong className="text-[#94A3B8]">{risk.evidenceClause}</strong>
+            Citation reference: <strong className="text-[#94A3B8]">{risk.evidenceClause || (risk as any).citation || 'Contract Section'}</strong>
           </span>
         </div>
 
@@ -130,7 +130,7 @@ export const RiskDetailDrawer: React.FC<RiskDetailDrawerProps> = ({ risk, onClos
             Recommended Operational Next Step
           </h4>
           <div className="p-3.5 rounded-xl bg-teal-500/5 border border-teal-500/20 text-xs text-[#F1F5F9] leading-relaxed">
-            {risk.recommendedNextStep}
+            {risk.recommendedNextStep || (risk as any).actionRequired || 'No specific operational next step required.'}
           </div>
         </div>
 

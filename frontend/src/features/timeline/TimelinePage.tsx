@@ -291,9 +291,18 @@ export const TimelinePage: React.FC = () => {
         </CardHeader>
 
         <CardContent className="p-4 space-y-3">
-          {sortedEvents.map((evt) => {
-            const isOverdue = evt.computedStatus === 'overdue'
-            const isDue = evt.computedStatus === 'due'
+          {sortedEvents.length === 0 ? (
+            <div className="py-12 text-center text-xs text-[#94A3B8]">
+              <CalendarClock className="w-8 h-8 text-[#64748B] mx-auto mb-2 opacity-50" />
+              <p className="font-semibold text-[#F1F5F9]">No Timeline Milestones Found</p>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                No events match the selected category filter or no commercial obligations are currently active.
+              </p>
+            </div>
+          ) : (
+            sortedEvents.map((evt) => {
+              const isOverdue = evt.computedStatus === 'overdue'
+              const isDue = evt.computedStatus === 'due'
 
             return (
               <div
@@ -386,7 +395,7 @@ export const TimelinePage: React.FC = () => {
                 </div>
               </div>
             )
-          })}
+          }))}
         </CardContent>
       </Card>
     </div>
