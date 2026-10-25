@@ -22,6 +22,9 @@ class ContractClause(BaseModel):
     text: Optional[str] = None
     type: Optional[str] = None
     isFlagged: Optional[bool] = False
+    isAmbiguous: Optional[bool] = False
+    ambiguityReason: Optional[str] = None
+    ambiguityStatus: Optional[str] = None
 
     @model_validator(mode="after")
     def sync_compatibility_fields(self):

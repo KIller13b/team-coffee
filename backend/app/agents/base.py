@@ -27,6 +27,9 @@ class ExtractedClause(BaseModel):
     category: str
     confidence_score: float = 0.95
     interpretation_note: Optional[str] = None
+    is_ambiguous: bool = False
+    ambiguity_reason: Optional[str] = None
+    ambiguity_status: Optional[str] = None
 
 
 class ExtractedObligation(BaseModel):
@@ -185,6 +188,43 @@ class OdinSynthesisOutput(BaseModel):
     agent_contributions: Dict[str, Any] = {}
 
 
+class ClarificationLoopRecord(BaseModel):
+    loop_id: str
+    clause_id: str
+    doc_id: str
+    inquiry: str
+    current_round: int = 1
+    max_rounds: int = 2
+    resolution: str
+    status: Literal['in_progress', 'resolved', 'terminated_at_bound'] = 'resolved'
+    participating_agents: List[str] = ["Thor", "Odin"]
+
+
+class DisputeLoopRecord(BaseModel):
+    loop_id: str
+    claim_id: str
+    issue: str
+    adversarial_claim: str
+    evidence_audit: str
+    current_round: int = 1
+    max_rounds: int = 3
+    binding_ruling: str
+    status: Literal['in_progress', 'resolved', 'terminated_at_bound'] = 'resolved'
+    participating_agents: List[str] = ["Loki", "Heimdall", "Tyr"]
+
+
+class ObservabilityMetrics(BaseModel):
+    execution_duration_ms: float = 0.0
+    total_agent_steps: int = 0
+    clarification_loops_count: int = 0
+    dispute_loops_count: int = 0
+    bounded_limits_enforced: bool = True
+    zero_hallucination_verified_count: int = 0
+    token_estimate: int = 0
+    clarification_records: List[ClarificationLoopRecord] = []
+    dispute_records: List[DisputeLoopRecord] = []
+
+
 class WorkflowExecutionResult(BaseModel):
     """Complete trace of the contract war room workflow execution."""
     workflow_id: str
@@ -199,6 +239,7 @@ class WorkflowExecutionResult(BaseModel):
     tyr: TyrOutput
     odin: OdinSynthesisOutput
     logs: List[Dict[str, Any]] = []
+    observability: Optional[ObservabilityMetrics] = None
 
 
 class BaseAgent(ABC):

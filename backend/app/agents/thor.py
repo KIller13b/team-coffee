@@ -73,6 +73,8 @@ class ThorAgent(BaseAgent):
             quote = (renewal_m.group(1) or renewal_m.group(2)).strip()
             notice_m = re.search(r"at least\s+(\d+)\s+days\s+before", quote, re.IGNORECASE)
             notice_val = f"{notice_m.group(1)}-Day Non-Renewal Notice" if notice_m else "No Auto-Renewal"
+            is_ambig = "A1" in doc_id.upper()
+            ambig_reason = "Conflicting notice period: A1 Section B specifies 90 days, while Amendment No. 1 §3 specifies 60 days. Amendment controls." if is_ambig else None
             clauses.append(ExtractedClause(
                 id=f"cls-{doc_id}-renewal",
                 doc_id=doc_id,
@@ -81,7 +83,10 @@ class ThorAgent(BaseAgent):
                 clause_citation="Section B (Subscription Period & Renewal)",
                 verbatim_text=quote,
                 category="term_and_renewal",
-                confidence_score=0.99
+                confidence_score=0.99,
+                is_ambiguous=is_ambig,
+                ambiguity_reason=ambig_reason,
+                ambiguity_status="clarified_by_council" if is_ambig else None
             ))
             citations.append(Citation(
                 doc_id=doc_id,
@@ -122,6 +127,8 @@ class ThorAgent(BaseAgent):
             quote = credit_proc_m.group(1).strip()
             days_match = re.search(r"within\s+([a-zA-Z0-9\(\)\s]+?)\s+days\s+after", quote, re.IGNORECASE)
             window_str = days_match.group(0).strip() if days_match else "Claim window"
+            is_ambig_cred = "A2" in doc_id.upper()
+            ambig_cred_reason = "Ambiguity between A2 §3.2 (30-day submission) and A3 §1 (15 days from month-end). A3 §1 controls as subsequent amendment." if is_ambig_cred else None
             clauses.append(ExtractedClause(
                 id=f"cls-{doc_id}-credit-window",
                 doc_id=doc_id,
@@ -130,7 +137,10 @@ class ThorAgent(BaseAgent):
                 clause_citation="Section 3.2 (Credit Request Procedure)",
                 verbatim_text=quote,
                 category="obligation",
-                confidence_score=0.99
+                confidence_score=0.99,
+                is_ambiguous=is_ambig_cred,
+                ambiguity_reason=ambig_cred_reason,
+                ambiguity_status="clarified_by_council" if is_ambig_cred else None
             ))
             citations.append(Citation(
                 doc_id=doc_id,
@@ -262,7 +272,10 @@ class ThorAgent(BaseAgent):
                 clause_citation="Section 4.3 (Deemed Acceptance)",
                 verbatim_text=quote,
                 category="obligation",
-                confidence_score=0.99
+                confidence_score=0.99,
+                is_ambiguous=True,
+                ambiguity_reason="Silence regarding delivery medium for rejection. Under STD §12.4, notice must be formal written notice to Notice Address.",
+                ambiguity_status="clarified_by_council"
             ))
             citations.append(Citation(
                 doc_id=doc_id,

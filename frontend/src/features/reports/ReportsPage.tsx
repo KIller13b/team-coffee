@@ -279,11 +279,24 @@ export const ReportsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] text-[#94A3B8] block">Financial Protection</span>
-                        <span className="text-xs font-bold text-teal-300 font-mono">
-                          {formatINR(action.financialImpactINR, true)}
-                        </span>
+                      <div className="text-right shrink-0 space-y-2">
+                        <div>
+                          <span className="text-[10px] text-[#94A3B8] block">Financial Protection</span>
+                          <span className="text-xs font-bold text-teal-300 font-mono">
+                            {formatINR(action.financialImpactINR, true)}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleToggleAction(action)}
+                          className={`px-2.5 py-1 rounded text-[10.5px] font-semibold border transition-colors cursor-pointer block w-full text-center ${
+                            isDone
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              : 'bg-teal-500/10 text-teal-300 border-teal-500/30 hover:bg-teal-500/20'
+                          }`}
+                        >
+                          {isDone ? '✓ Approved (FR6.3)' : 'Approve Notice'}
+                        </button>
                       </div>
                     </div>
                   </div>

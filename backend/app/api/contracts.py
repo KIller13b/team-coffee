@@ -503,31 +503,40 @@ async def upload_contract_file(
     global contracts_db
     contracts_db = [c for c in contracts_db if c.id != contract.id]
     contracts_db.insert(0, contract)
+    
+    # Synchronize with dynamic War Room State Store
+    from app.services.war_room_state import war_room_state
+    war_room_state.contracts = [c for c in war_room_state.contracts if c.id != contract.id]
+    war_room_state.contracts.insert(0, contract)
+    for cl in contract.clauses:
+        war_room_state.clauses.append(cl)
+    for ob in contract.obligations:
+        war_room_state.obligations.append(ob)
+    
     return contract
 
 @router.delete("", status_code=200)
 def clear_all_contracts():
     """Clears all contracts from repository."""
+    global contracts_db
     contracts_db.clear()
+    from app.services.war_room_state import war_room_state
+    war_room_state.contracts.clear()
     return {"message": "All contracts cleared successfully", "count": 0}
 
 @router.delete("/{contract_id}", status_code=200)
 def delete_contract(contract_id: str):
     global contracts_db
     contracts_db = [c for c in contracts_db if c.id != contract_id]
+    from app.services.war_room_state import war_room_state
+    war_room_state.contracts = [c for c in war_room_state.contracts if c.id != contract_id]
     return {"message": f"Contract {contract_id} deleted successfully"}
 
 @router.post("/seed", response_model=List[Contract], status_code=200)
 def seed_reference_contracts():
     """Manually load canonical Quillhub contracts if desired."""
     global contracts_db
-    contracts_db = []
-    for c in SEED_CONTRACTS:
-        key = c["id"].replace("cnt-", "").upper()
-        meta = CANONICAL_METADATA.get(key, {})
-        obs = CANONICAL_OBLIGATIONS.get(key, [])
-        item = dict(c)
-        item.update(meta)
-        item["obligations"] = obs
-        contracts_db.append(Contract(**item))
+    from app.services.war_room_state import war_room_state
+    war_room_state.recompute_all()
+    contracts_db = war_room_state.contracts.copy()
     return contracts_db
