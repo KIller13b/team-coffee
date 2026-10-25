@@ -11,66 +11,150 @@ agents_db = [AgentInfo(**a) for a in SEED_AGENTS]
 def get_agents():
     return agents_db
 
+INITIAL_AGENT_MESSAGES = [
+    {
+        "id": "msg-001",
+        "agentId": "odin",
+        "agentName": "Odin",
+        "stage": "delegation",
+        "timestamp": "2026-10-25T11:45:00Z",
+        "title": "Initiated Portfolio Risk Scan & Cross-Contract Correlation",
+        "message": "Initiating full portfolio analysis across active enterprise agreements.",
+        "tags": ["System Plan"]
+    },
+    {
+        "id": "msg-002",
+        "agentId": "thor",
+        "agentName": "Thor",
+        "stage": "extraction",
+        "timestamp": "2026-10-25T11:48:00Z",
+        "title": "Clause Extraction: Apex Cloud Infrastructure",
+        "message": "Extracted Section 14.2 (Term & Expiration): 45-day prior written notice required.",
+        "contractId": "cnt-001",
+        "clauseReference": "Section 14.2",
+        "verbatimEvidence": "This Agreement shall automatically renew for successive terms of twelve (12) months unless either party gives written notice of non-renewal at least forty-five (45) days prior to the expiration."
+    },
+    {
+        "id": "msg-004",
+        "agentId": "loki",
+        "agentName": "Loki",
+        "stage": "challenge",
+        "timestamp": "2026-10-25T11:56:00Z",
+        "title": "Adversarial Challenge: Cross-Contract Collision with Vanguard ERP",
+        "message": "Non-renewal notice to Apex Cloud triggers breach under Vanguard ERP MSA Section 9.3!",
+        "contractId": "cnt-001",
+        "clauseReference": "Apex Sec 14.2 vs Vanguard Sec 9.3",
+        "disagreementLevel": "high",
+        "requiresHumanReview": True
+    },
+    {
+        "id": "msg-007",
+        "agentId": "heimdall",
+        "agentName": "Heimdall",
+        "stage": "verification",
+        "timestamp": "2026-10-25T12:15:00Z",
+        "title": "Fact-Check: Mail Gateway & ERP Ticketing Audit",
+        "message": "Audited enterprise communication gateways: No formal notice dispatched to Apex Cloud to date.",
+        "contractId": "cnt-001"
+    },
+    {
+        "id": "msg-008",
+        "agentId": "tyr",
+        "agentName": "Tyr",
+        "stage": "ruling",
+        "timestamp": "2026-10-25T12:22:00Z",
+        "title": "Binding Arbiter Ruling: Prescriptive 3-Step Mitigation Protocol",
+        "message": "RULING RENDERED: Cross-contract conflict upheld as Critical Risk. Unilateral cancellation prohibited. Execute 3-month bridge extension addendum with Apex Cloud while submitting architectural package to Vanguard.",
+        "contractId": "cnt-001",
+        "requiresHumanReview": True
+    }
+]
+
+agent_messages_db = list(INITIAL_AGENT_MESSAGES)
+
+def record_workflow_execution(result):
+    """Appends live agent deliberations to agent_messages_db from a WorkflowExecutionResult."""
+    import uuid
+    from datetime import datetime
+
+    now = datetime.utcnow().isoformat() + "Z"
+    cid = result.contract_id
+
+    # Thor message
+    thor_msg = {
+        "id": f"msg-{uuid.uuid4().hex[:6]}",
+        "agentId": "thor",
+        "agentName": "Thor",
+        "stage": "extraction",
+        "timestamp": now,
+        "title": f"Clause Extraction: {result.contract_title or cid}",
+        "message": f"Extracted {len(result.thor.clauses)} verbatim clauses and {len(result.thor.obligations)} obligations with unhallucinated citations.",
+        "contractId": cid,
+        "tags": ["Thor Extracted", "Verbatim Grounding"]
+    }
+
+    # Loki message
+    loki_msg = {
+        "id": f"msg-{uuid.uuid4().hex[:6]}",
+        "agentId": "loki",
+        "agentName": "Loki",
+        "stage": "challenge",
+        "timestamp": now,
+        "title": f"Adversarial Challenge: {cid}",
+        "message": f"Generated {len(result.loki.risks_and_claims)} adversarial risk claims and stress-tested SLA boundaries.",
+        "contractId": cid,
+        "disagreementLevel": "high" if len(result.loki.risks_and_claims) > 1 else "medium",
+        "requiresHumanReview": True
+    }
+
+    # Heimdall message
+    heimdall_msg = {
+        "id": f"msg-{uuid.uuid4().hex[:6]}",
+        "agentId": "heimdall",
+        "agentName": "Heimdall",
+        "stage": "verification",
+        "timestamp": now,
+        "title": f"Telemetry Fact-Check: {cid}",
+        "message": f"Sentinel audit: {len(result.heimdall.yes_branch_claims)} confirmed breaches (YES), {len(result.heimdall.no_branch_claims)} unverified claims (NO).",
+        "contractId": cid
+    }
+
+    # Tyr message
+    tyr_msg = {
+        "id": f"msg-{uuid.uuid4().hex[:6]}",
+        "agentId": "tyr",
+        "agentName": "Tyr",
+        "stage": "ruling",
+        "timestamp": now,
+        "title": f"Binding Arbiter Rulings: {cid}",
+        "message": f"Rendered {len(result.tyr.rulings)} binding rulings on contested claims and notice protocols.",
+        "contractId": cid,
+        "requiresHumanReview": False
+    }
+
+    # Odin message
+    odin_msg = {
+        "id": f"msg-{uuid.uuid4().hex[:6]}",
+        "agentId": "odin",
+        "agentName": "Odin",
+        "stage": "synthesis",
+        "timestamp": now,
+        "title": f"Odin Final Actions: {cid}",
+        "message": f"Synthesized Council findings into {len(result.odin.final_actions)} ready-to-dispatch legal actions. Total exposure: ₹{result.norns.worst_case_exposure_inr:,.2f}.",
+        "contractId": cid,
+        "tags": ["Final Directive", "Executive Action"]
+    }
+
+    # Prepend in logical order
+    agent_messages_db.insert(0, odin_msg)
+    agent_messages_db.insert(1, tyr_msg)
+    agent_messages_db.insert(2, heimdall_msg)
+    agent_messages_db.insert(3, loki_msg)
+    agent_messages_db.insert(4, thor_msg)
+
 @router.get("/agents/messages")
 def get_messages():
-    return [
-        {
-            "id": "msg-001",
-            "agentId": "odin",
-            "agentName": "Odin",
-            "stage": "delegation",
-            "timestamp": "2026-10-25T11:45:00Z",
-            "title": "Initiated Portfolio Risk Scan & Cross-Contract Correlation",
-            "message": "Initiating full portfolio analysis across active enterprise agreements.",
-            "tags": ["System Plan"]
-        },
-        {
-            "id": "msg-002",
-            "agentId": "thor",
-            "agentName": "Thor",
-            "stage": "extraction",
-            "timestamp": "2026-10-25T11:48:00Z",
-            "title": "Clause Extraction: Apex Cloud Infrastructure",
-            "message": "Extracted Section 14.2 (Term & Expiration): 45-day prior written notice required.",
-            "contractId": "cnt-001",
-            "clauseReference": "Section 14.2",
-            "verbatimEvidence": "This Agreement shall automatically renew for successive terms of twelve (12) months unless either party gives written notice of non-renewal at least forty-five (45) days prior to the expiration."
-        },
-        {
-            "id": "msg-004",
-            "agentId": "loki",
-            "agentName": "Loki",
-            "stage": "challenge",
-            "timestamp": "2026-10-25T11:56:00Z",
-            "title": "Adversarial Challenge: Cross-Contract Collision with Vanguard ERP",
-            "message": "Non-renewal notice to Apex Cloud triggers breach under Vanguard ERP MSA Section 9.3!",
-            "contractId": "cnt-001",
-            "clauseReference": "Apex Sec 14.2 vs Vanguard Sec 9.3",
-            "disagreementLevel": "high",
-            "requiresHumanReview": True
-        },
-        {
-            "id": "msg-007",
-            "agentId": "heimdall",
-            "agentName": "Heimdall",
-            "stage": "verification",
-            "timestamp": "2026-10-25T12:15:00Z",
-            "title": "Fact-Check: Mail Gateway & ERP Ticketing Audit",
-            "message": "Audited enterprise communication gateways: No formal notice dispatched to Apex Cloud to date.",
-            "contractId": "cnt-001"
-        },
-        {
-            "id": "msg-008",
-            "agentId": "tyr",
-            "agentName": "Tyr",
-            "stage": "ruling",
-            "timestamp": "2026-10-25T12:22:00Z",
-            "title": "Binding Arbiter Ruling: Prescriptive 3-Step Mitigation Protocol",
-            "message": "RULING RENDERED: Cross-contract conflict upheld as Critical Risk. Unilateral cancellation prohibited. Execute 3-month bridge extension addendum with Apex Cloud while submitting architectural package to Vanguard.",
-            "contractId": "cnt-001",
-            "requiresHumanReview": True
-        }
-    ]
+    return agent_messages_db
 
 @router.get("/workflow/steps")
 def get_workflow_steps():
@@ -123,6 +207,7 @@ def run_war_room_workflow(
         real_world_events=events,
         clock_date=clock_date
     )
+    record_workflow_execution(result)
     return result
 
 

@@ -1,4 +1,5 @@
 import io
+import os
 import uuid
 import subprocess
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
@@ -6,6 +7,8 @@ from typing import List, Optional
 from app.models.schemas import Contract, ContractClause, Obligation
 from app.data.seed_data import SEED_CONTRACTS
 from app.agents.thor import ThorAgent
+from app.agents import ContractWarRoomWorkflow, load_dataset_bundle
+from app.api.agents import record_workflow_execution
 
 router = APIRouter(prefix="/contracts", tags=["Contracts"])
 
@@ -359,10 +362,28 @@ async def upload_contract_file(
 
     contract_id = f"cnt-{uuid.uuid4().hex[:8]}"
 
+    # Load events for sentinel audit
+    bundle_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "odin_data", "bundle"))
+    events = []
+    if os.path.exists(bundle_dir):
+        bundle = load_dataset_bundle(bundle_dir)
+        events = bundle.get("events", [])
+
     if canonical_key and canonical_key in canonical_map:
         matched = canonical_map[canonical_key]
         meta = CANONICAL_METADATA.get(canonical_key, {})
         obs = CANONICAL_OBLIGATIONS.get(canonical_key, [])
+        
+        # Execute workflow through council to Odin
+        workflow = ContractWarRoomWorkflow()
+        wf_res = workflow.execute(
+            doc_id=canonical_key,
+            contract_text=text or matched.get("title", ""),
+            real_world_events=events,
+            clock_date="2027-03-15"
+        )
+        record_workflow_execution(wf_res)
+
         contract = Contract(
             id=f"cnt-{canonical_key}",
             title=matched["title"],
@@ -381,8 +402,8 @@ async def upload_contract_file(
             autoRenewalConditions=meta.get("autoRenewalConditions", ""),
             paymentSchedule=meta.get("paymentSchedule", ""),
             confidenceScore=0.98,
-            summary=matched.get("description", f"Canonical {canonical_key} verified by Thor"),
-            tags=["Canonical Bundle", "Thor Verified", "Zero Hallucination"],
+            summary=wf_res.odin.executive_summary or matched.get("description", f"Canonical {canonical_key} verified by Thor & Odin"),
+            tags=["Canonical Bundle", "Thor Verified", "Odin Synthesized", "Zero Hallucination"],
             clauses=[ContractClause(**cl) for cl in matched.get("clauses", [])],
             obligations=[Obligation(**ob) for ob in obs]
         )
@@ -413,9 +434,18 @@ async def upload_contract_file(
             obligations=[]
         )
     else:
-        # Custom commercial agreement with real text
-        thor = ThorAgent()
-        out = thor.extract(contract_id, text)
+        # Custom commercial agreement with real text:
+        # Flow: CONTRACT -> THOR -> (NORNS & LOKI) -> HEIMDALL -> TYR -> ODIN -> FINAL ACTION
+        workflow = ContractWarRoomWorkflow()
+        wf_res = workflow.execute(
+            doc_id=contract_id,
+            contract_text=text,
+            real_world_events=events,
+            clock_date="2027-03-15"
+        )
+        record_workflow_execution(wf_res)
+
+        out = wf_res.thor
         clean_title = title or out.title or filename.replace('.pdf','').replace('.txt','').replace('_',' ')
         clauses_list = []
         for cl in out.clauses:
@@ -444,7 +474,7 @@ async def upload_contract_file(
                 responsibleParty=ob.responsible_party,
                 clauseReference=ob.clause_reference
             ))
-        exposure = sum(ob.financialExposureINR for ob in obligations_list)
+        exposure = wf_res.norns.worst_case_exposure_inr or sum(ob.financialExposureINR for ob in obligations_list)
         contract = Contract(
             id=contract_id,
             title=clean_title,
@@ -452,7 +482,7 @@ async def upload_contract_file(
             contractType=contract_type or "Commercial Services Agreement",
             status="active" if clauses_list else "under_review",
             analysisStatus="completed",
-            riskLevel="medium" if exposure < 100000 else "high",
+            riskLevel="critical" if wf_res.heimdall.yes_branch_claims or exposure > 1000000 else "high" if exposure > 100000 else "medium",
             startDate="2026-11-01",
             endDate="2027-10-31",
             renewalDate="2027-09-30",
@@ -463,8 +493,8 @@ async def upload_contract_file(
             autoRenewalConditions="Standard commercial terms.",
             paymentSchedule="Net 30 days.",
             confidenceScore=0.95,
-            summary=f"Thor extracted {len(clauses_list)} verbatim clauses and {len(obligations_list)} obligations from uploaded agreement.",
-            tags=["Custom Contract", "Thor Extracted", "Zero Hallucination"],
+            summary=wf_res.odin.executive_summary or f"Thor extracted {len(clauses_list)} verbatim clauses and Odin synthesized {len(wf_res.odin.final_actions)} actions.",
+            tags=["Custom Contract", "Thor Extracted", "Odin Synthesized", "Zero Hallucination"],
             clauses=clauses_list,
             obligations=obligations_list
         )
