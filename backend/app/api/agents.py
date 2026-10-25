@@ -125,3 +125,55 @@ def run_war_room_workflow(
     )
     return result
 
+
+from pydantic import BaseModel
+from typing import Optional
+from app.services.llm import llm_service
+
+class ChatRequest(BaseModel):
+    agent_id: str = "odin"
+    message: str
+    contract_id: Optional[str] = "A2"
+    context: Optional[str] = None
+
+@router.post("/chat")
+def war_room_chat(request: ChatRequest):
+    """
+    Dynamic interactive chat with Odin, Thor, Loki, Norns, Heimdall, or Tyr.
+    Powered by Groq LLM inference with zero-cost fallback.
+    """
+    agent_personas = {
+        "odin": "You are Odin, the Allfather orchestrator of legal intelligence for Quillhub Inc. Synthesize concrete legal actions grounded in contract terms.",
+        "thor": "You are Thor, the extraction agent. Provide exact clause numbers, definitions, and verbatim facts from Quillhub contracts.",
+        "loki": "You are Loki, adversarial red-team counsel. Find traps, contradictions, and exposure vulnerabilities in Quillhub agreements.",
+        "norns": "You are The Norns, temporal oracle. Calculate deadlines, countdowns, and worst-case liabilities across simulated checkpoints.",
+        "heimdall": "You are Heimdall, sentinel fact-checker. Correlate claims against real-world events and status logs.",
+        "tyr": "You are Tyr, the binding arbiter. Resolve disputes, dismiss false alarms, and prescribe mitigation protocols."
+    }
+
+    sys_prompt = agent_personas.get(request.agent_id.lower(), agent_personas["odin"])
+    sys_prompt += (
+        "\nQuillhub Context: Quillhub is a B2B SaaS route-optimization platform in Austin, TX. "
+        "Upstream provider is StratoNode (A1/A2/A3, 99.5% uptime, $8k/mo). "
+        "Downstream customer is Harbor Retail (B1/B2, 99.9% uptime, $40k/mo). "
+        "Contractor is Pixelwright (D1, $65k fixed fee). Keep answers concise and direct."
+    )
+
+    if llm_service.is_available:
+        answer = llm_service.generate(prompt=request.message, system_prompt=sys_prompt)
+        if answer:
+            return {
+                "agentId": request.agent_id,
+                "response": answer,
+                "model": llm_service.model,
+                "source": "groq_llm"
+            }
+
+    # Fallback response if offline
+    return {
+        "agentId": request.agent_id,
+        "response": f"[{request.agent_id.upper()} ADVISORY]: Quillhub agreements require strict written notice compliance. Review contract clauses and simulated clock deadlines.",
+        "model": "rule_based_fallback",
+        "source": "deterministic"
+    }
+

@@ -8,6 +8,7 @@ from app.api.risks import router as risks_router
 from app.api.agents import router as agents_router
 
 load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 app = FastAPI(
     title="Odin — Multi-Agent Contract Intelligence API",
