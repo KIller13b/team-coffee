@@ -13,6 +13,10 @@ export interface ContractClause {
   extractedBy: 'thor' | 'odin'
   category: 'payment' | 'renewal' | 'termination' | 'penalty' | 'liability' | 'confidentiality' | 'sla'
   interpretationNote?: string
+  isAmbiguous?: boolean
+  ambiguityReason?: string
+  ambiguityStatus?: string
+  isFlagged?: boolean
 }
 
 export interface Obligation {

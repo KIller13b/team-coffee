@@ -1,134 +1,20 @@
-from fastapi import APIRouter
-from typing import List
+from fastapi import APIRouter, HTTPException
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from app.models.schemas import AgentInfo, AgentMessage, WorkflowStep
 from app.data.seed_data import SEED_AGENTS
-
-router = APIRouter(prefix="", tags=["Agents"])
-
-agents_db = [AgentInfo(**a) for a in SEED_AGENTS]
-
-@router.get("/agents", response_model=List[AgentInfo])
-def get_agents():
-    return agents_db
-
-@router.get("/agents/messages")
-def get_messages():
-    return [
-        {
-            "id": "msg-001",
-            "agentId": "odin",
-            "agentName": "Odin",
-            "stage": "delegation",
-            "timestamp": "2026-10-25T11:45:00Z",
-            "title": "Initiated Portfolio Risk Scan & Cross-Contract Correlation",
-            "message": "Initiating full portfolio analysis across active enterprise agreements.",
-            "tags": ["System Plan"]
-        },
-        {
-            "id": "msg-002",
-            "agentId": "thor",
-            "agentName": "Thor",
-            "stage": "extraction",
-            "timestamp": "2026-10-25T11:48:00Z",
-            "title": "Clause Extraction: Apex Cloud Infrastructure",
-            "message": "Extracted Section 14.2 (Term & Expiration): 45-day prior written notice required.",
-            "contractId": "cnt-001",
-            "clauseReference": "Section 14.2",
-            "verbatimEvidence": "This Agreement shall automatically renew for successive terms of twelve (12) months unless either party gives written notice of non-renewal at least forty-five (45) days prior to the expiration."
-        },
-        {
-            "id": "msg-004",
-            "agentId": "loki",
-            "agentName": "Loki",
-            "stage": "challenge",
-            "timestamp": "2026-10-25T11:56:00Z",
-            "title": "Adversarial Challenge: Cross-Contract Collision with Vanguard ERP",
-            "message": "Non-renewal notice to Apex Cloud triggers breach under Vanguard ERP MSA Section 9.3!",
-            "contractId": "cnt-001",
-            "clauseReference": "Apex Sec 14.2 vs Vanguard Sec 9.3",
-            "disagreementLevel": "high",
-            "requiresHumanReview": True
-        },
-        {
-            "id": "msg-007",
-            "agentId": "heimdall",
-            "agentName": "Heimdall",
-            "stage": "verification",
-            "timestamp": "2026-10-25T12:15:00Z",
-            "title": "Fact-Check: Mail Gateway & ERP Ticketing Audit",
-            "message": "Audited enterprise communication gateways: No formal notice dispatched to Apex Cloud to date.",
-            "contractId": "cnt-001"
-        },
-        {
-            "id": "msg-008",
-            "agentId": "tyr",
-            "agentName": "Tyr",
-            "stage": "ruling",
-            "timestamp": "2026-10-25T12:22:00Z",
-            "title": "Binding Arbiter Ruling: Prescriptive 3-Step Mitigation Protocol",
-            "message": "RULING RENDERED: Cross-contract conflict upheld as Critical Risk. Unilateral cancellation prohibited. Execute 3-month bridge extension addendum with Apex Cloud while submitting architectural package to Vanguard.",
-            "contractId": "cnt-001",
-            "requiresHumanReview": True
-        }
-    ]
-
-@router.get("/workflow/steps")
-def get_workflow_steps():
-    return [
-        {"id": "step-1", "stepNumber": 1, "agentId": "thor", "title": "Thor Extraction", "description": "What does it say? Verbatim clause extraction", "status": "completed", "timestamp": "11:45:00"},
-        {"id": "step-2", "stepNumber": 2, "agentId": "norns", "title": "Norns Timekeeping", "description": "WHEN? Projected deadlines & liabilities", "status": "completed", "timestamp": "11:48:00"},
-        {"id": "step-3", "stepNumber": 3, "agentId": "loki", "title": "Loki Red-Team", "description": "WHAT CAN GO WRONG? Adversarial claims", "status": "completed", "timestamp": "11:51:00"},
-        {"id": "step-4", "stepNumber": 4, "agentId": "heimdall", "title": "Heimdall Sentinel", "description": "IS THIS ACTUALLY HAPPENING? YES/NO audit", "status": "completed", "timestamp": "11:56:00"},
-        {"id": "step-5", "stepNumber": 5, "agentId": "tyr", "title": "Tyr Arbitration", "description": "Resolve dispute for NO/contested claims", "status": "completed", "timestamp": "12:15:00"},
-        {"id": "step-6", "stepNumber": 6, "agentId": "odin", "title": "Odin Allfather", "description": "Synthesize intelligence & generate FINAL ACTION", "status": "completed", "timestamp": "12:22:00"}
-    ]
-
-@router.post("/workflow/run")
-def run_war_room_workflow(
-    contract_id: str = "A1",
-    contract_text: str = None,
-    clock_date: str = "2027-01-15"
-):
-    """
-    Executes the Thor -> (Norns & Loki) -> Heimdall -> (YES direct / NO -> Tyr) -> Odin -> Final Action workflow.
-    """
-    import os
-    from app.agents import ContractWarRoomWorkflow, load_dataset_bundle
-
-    workflow = ContractWarRoomWorkflow()
-    
-    # Try finding bundle path
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "odin_data", "bundle"))
-    events = []
-    text = contract_text
-
-    if os.path.exists(base_dir):
-        bundle = load_dataset_bundle(base_dir)
-        events = bundle.get("events", [])
-        if not text and contract_id in bundle.get("contracts", {}):
-            text = bundle["contracts"][contract_id]
-
-    if not text:
-        text = (
-            f"Master Cloud Service Agreement between Quillhub Inc. and Provider Corp.\n"
-            f"Section 14.2 (Term & Expiration): This Agreement shall automatically renew for successive terms of 12 months "
-            f"unless either party gives written notice of non-renewal at least 45 days prior to expiration.\n"
-            f"Service Level Agreement §2: Provider commits to 99.9% Monthly Uptime Percentage.\n"
-            f"Section 16: All notices must be served in writing via registered mail."
-        )
-
-    result = workflow.execute(
-        doc_id=contract_id,
-        contract_text=text,
-        real_world_events=events,
-        clock_date=clock_date
-    )
-    return result
-
-
-from pydantic import BaseModel
-from typing import Optional
+from app.services.war_room_state import war_room_state
 from app.services.llm import llm_service
+
+router = APIRouter(prefix="", tags=["Agents & War Room"])
+
+class ReExtractRequest(BaseModel):
+    contract_id: str
+    clause_field: str
+
+class ApproveActionRequest(BaseModel):
+    action_id: str
+    approver: Optional[str] = "Marcus Ellison (VP Legal)"
 
 class ChatRequest(BaseModel):
     agent_id: str = "odin"
@@ -136,11 +22,91 @@ class ChatRequest(BaseModel):
     contract_id: Optional[str] = "A2"
     context: Optional[str] = None
 
+@router.get("/agents", response_model=List[AgentInfo])
+def get_agents():
+    """Returns the Norse Council agents with their current live status."""
+    return [AgentInfo(**a) for a in SEED_AGENTS]
+
+@router.get("/agents/messages")
+def get_messages():
+    """FR9.4: Real-time agent debate feed (Loki challenges, Heimdall verifications, Tyr rulings)."""
+    return war_room_state.messages
+
+@router.get("/workflow/steps")
+def get_workflow_steps():
+    """Observability trace of agent transitions and execution status (NFR4)."""
+    return war_room_state.workflow_steps
+
+@router.get("/observability")
+def get_observability():
+    """Observability telemetry: execution timing, bounded loops, zero hallucination count, token estimate."""
+    return war_room_state.get_observability()
+
+@router.get("/agents/loops")
+def get_loop_records():
+    """Clarification and dispute loop audit trails with bounded limits."""
+    return {
+        "clarificationLoops": war_room_state.clarification_records,
+        "disputeLoops": war_room_state.dispute_records,
+        "boundedLimitsEnforced": True
+    }
+
+@router.get("/graph")
+def get_contract_graph():
+    """
+    FR9.1: Interactive graph with contracts, clauses, and parties as nodes,
+    and dependencies and cross-contract collisions as edges.
+    """
+    return war_room_state.get_contract_graph()
+
+@router.post("/agents/thor/re-extract")
+def re_extract_clause(req: ReExtractRequest):
+    """
+    FR2.4: Re-extract a specific clause on request and save output to shared state store.
+    """
+    result = war_room_state.re_extract_clause(req.contract_id, req.clause_field)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+@router.post("/actions/{action_id}/approve")
+def approve_action(action_id: str):
+    """
+    FR6.3: Human approval for drafted legal notices and operational directives.
+    """
+    result = war_room_state.approve_action(action_id)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+@router.post("/workflow/run")
+def run_war_room_workflow(
+    contract_id: str = "A2",
+    contract_text: Optional[str] = None,
+    clock_date: str = "2027-01-15"
+):
+    """
+    Executes the Thor -> (Norns & Loki) -> Heimdall -> (YES / NO -> Tyr) -> Odin workflow cycle.
+    """
+    from app.agents import ContractWarRoomWorkflow
+    workflow = ContractWarRoomWorkflow()
+    text = contract_text or war_room_state.raw_contracts.get(contract_id.replace("cnt-", "").upper(), "")
+    if not text:
+        text = war_room_state.raw_contracts.get("A2", "")
+
+    result = workflow.execute(
+        doc_id=contract_id,
+        contract_text=text,
+        real_world_events=war_room_state.raw_events,
+        clock_date=clock_date,
+        company_context=war_room_state.context_text
+    )
+    return result
+
 @router.post("/chat")
 def war_room_chat(request: ChatRequest):
     """
-    Dynamic interactive chat with Odin, Thor, Loki, Norns, Heimdall, or Tyr.
-    Powered by Groq LLM inference with zero-cost fallback.
+    Dynamic interactive Norse Council chat powered by Groq LLM inference with zero-cost fallback.
     """
     agent_personas = {
         "odin": "You are Odin, the Allfather orchestrator of legal intelligence for Quillhub Inc. Synthesize concrete legal actions grounded in contract terms.",
@@ -156,7 +122,9 @@ def war_room_chat(request: ChatRequest):
         "\nQuillhub Context: Quillhub is a B2B SaaS route-optimization platform in Austin, TX. "
         "Upstream provider is StratoNode (A1/A2/A3, 99.5% uptime, $8k/mo). "
         "Downstream customer is Harbor Retail (B1/B2, 99.9% uptime, $40k/mo). "
-        "Contractor is Pixelwright (D1, $65k fixed fee). Keep answers concise and direct."
+        "Customer is Vantage Logistics (C1, $3M insurance requirement). "
+        "Contractor is Pixelwright (D1, $65k fixed fee, 10-business-day deemed acceptance). "
+        "Keep answers concise, direct, and legally grounded."
     )
 
     if llm_service.is_available:
@@ -169,11 +137,10 @@ def war_room_chat(request: ChatRequest):
                 "source": "groq_llm"
             }
 
-    # Fallback response if offline
+    # Fallback rule-based response
     return {
         "agentId": request.agent_id,
         "response": f"[{request.agent_id.upper()} ADVISORY]: Quillhub agreements require strict written notice compliance. Review contract clauses and simulated clock deadlines.",
         "model": "rule_based_fallback",
         "source": "deterministic"
     }
-

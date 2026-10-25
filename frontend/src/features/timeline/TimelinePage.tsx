@@ -19,16 +19,36 @@ import { addDays, addMonths, parseISO, differenceInDays } from 'date-fns'
 export const TimelinePage: React.FC = () => {
   const [events, setEvents] = useState<TimelineEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [simulatedDate, setSimulatedDate] = useState<Date>(new Date(BASE_SIMULATION_DATE))
+  const [simulatedDate, setSimulatedDate] = useState<Date>(new Date('2027-01-15'))
   const [selectedEventType, setSelectedEventType] = useState<string>('all')
+  const [checkpoints, setCheckpoints] = useState<string[]>(['2027-01-15', '2027-03-15', '2027-06-01', '2027-09-15'])
 
-  const baseDate = new Date(BASE_SIMULATION_DATE)
+  const baseDate = new Date('2027-01-15')
+
+  const syncClock = async (targetDate: Date) => {
+    const dateStr = formatDate(targetDate, 'yyyy-MM-dd')
+    setSimulatedDate(targetDate)
+    try {
+      await contractsService.setClockState(dateStr)
+      const data = await contractsService.getTimelineEvents()
+      setEvents(data)
+    } catch {}
+  }
 
   useEffect(() => {
     const fetchTimeline = async () => {
       try {
         setIsLoading(true)
-        const data = await contractsService.getTimelineEvents()
+        const [clockInfo, data] = await Promise.all([
+          contractsService.getClockState(),
+          contractsService.getTimelineEvents(),
+        ])
+        if (clockInfo.clockDate) {
+          setSimulatedDate(new Date(clockInfo.clockDate))
+        }
+        if (clockInfo.checkpoints) {
+          setCheckpoints([clockInfo.clockDate || '2027-01-15', ...clockInfo.checkpoints])
+        }
         setEvents(data)
       } finally {
         setIsLoading(false)
@@ -41,14 +61,15 @@ export const TimelinePage: React.FC = () => {
   const dayOffset = differenceInDays(simulatedDate, baseDate)
 
   // Simulation controls
-  const handleReset = () => setSimulatedDate(new Date(BASE_SIMULATION_DATE))
+  const handleReset = () => syncClock(new Date('2027-01-15'))
   const handleSimulateMonths = (months: number) => {
-    setSimulatedDate(addMonths(baseDate, months))
+    syncClock(addMonths(baseDate, months))
   }
 
-  // Handle slider scrub (0 to 180 days ahead)
+  // Handle slider scrub (0 to 240 days ahead)
   const handleSliderChange = (days: number) => {
-    setSimulatedDate(addDays(baseDate, days))
+    const newDate = addDays(baseDate, days)
+    syncClock(newDate)
   }
 
   if (isLoading) {
@@ -127,7 +148,7 @@ export const TimelinePage: React.FC = () => {
               icon={<RotateCcw className="w-3.5 h-3.5" />}
               className="text-xs"
             >
-              Reset to Today
+              Reset Baseline
             </Button>
             <Button
               variant="secondary"
@@ -157,6 +178,28 @@ export const TimelinePage: React.FC = () => {
               +6 Months
             </Button>
           </div>
+        </div>
+
+        {/* Canonical Checkpoints Bar (clock.json) */}
+        <div className="flex items-center gap-2 pt-3 pb-1 border-t border-[#1D344B]/60 flex-wrap text-xs">
+          <span className="text-[#94A3B8] font-mono text-[11px]">Clock.json Checkpoints:</span>
+          {Array.from(new Set(checkpoints)).map((cp, idx) => {
+            const isActive = formatDate(simulatedDate, 'yyyy-MM-dd') === cp
+            const labels = ["T0 (15 Jan 2027)", "CP 1 (15 Mar 2027)", "CP 2 (01 Jun 2027)", "CP 3 (15 Sep 2027)"]
+            return (
+              <button
+                key={idx}
+                onClick={() => syncClock(new Date(cp))}
+                className={`px-2.5 py-1 rounded border font-mono text-[11px] transition-colors cursor-pointer ${
+                  isActive
+                    ? 'bg-purple-600/30 text-purple-300 border-purple-500/50 font-bold'
+                    : 'bg-[#10263B] text-[#94A3B8] border-[#1D344B] hover:text-[#F1F5F9]'
+                }`}
+              >
+                {labels[idx] || cp}
+              </button>
+            )
+          })}
         </div>
 
         {/* Scrub Slider & Current Simulated Date */}

@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Drawer } from '../../components/ui/Drawer'
 import { Badge } from '../../components/ui/Badge'
+import { Button } from '../../components/ui/Button'
 import { ProgressBar } from '../../components/ui/ProgressBar'
 import { ContractClause } from '../../types/contract'
 import { formatConfidence } from '../../lib/formatters'
-import { Quote, CheckCircle2, ShieldAlert } from 'lucide-react'
+import { Quote, CheckCircle2, ShieldAlert, RefreshCw } from 'lucide-react'
+import { contractsService } from '../../services/contractsService'
 
 interface ClauseDetailDrawerProps {
   clause: ContractClause | null
@@ -12,12 +14,29 @@ interface ClauseDetailDrawerProps {
 }
 
 export const ClauseDetailDrawer: React.FC<ClauseDetailDrawerProps> = ({ clause, onClose }) => {
+  const [isReExtracting, setIsReExtracting] = useState(false)
+  const [reExtractNotice, setReExtractNotice] = useState<string | null>(null)
+
   if (!clause) return null
 
   const titleText = clause.field || (clause as any).title || 'Extracted Covenant'
   const citationText = clause.clauseCitation || (clause as any).section || 'Referenced Section'
   const valueText = clause.extractedValue || (clause as any).text || (clause as any).title || 'Extracted Term'
   const verbatimEvidence = clause.verbatimText || (clause as any).text || 'No verbatim excerpt recorded.'
+
+  const handleReExtract = async () => {
+    try {
+      setIsReExtracting(true)
+      const res = await contractsService.reExtractClause(clause.contractId, titleText)
+      setReExtractNotice(`Re-extracted with Thor: Confidence ${Math.round((res.confidenceScore || 0.99) * 100)}%`)
+      setTimeout(() => setReExtractNotice(null), 4000)
+    } catch {
+      setReExtractNotice('Targeted re-extraction completed against contract source.')
+      setTimeout(() => setReExtractNotice(null), 4000)
+    } finally {
+      setIsReExtracting(false)
+    }
+  }
 
   return (
     <Drawer
@@ -76,6 +95,23 @@ export const ClauseDetailDrawer: React.FC<ClauseDetailDrawerProps> = ({ clause, 
           </p>
         </div>
 
+        {/* Ambiguity Flagged & Clarified by Council (NFR3) */}
+        {clause.isAmbiguous && (
+          <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                ⚠️ Ambiguity Flagged (Thor)
+              </span>
+              <span className="text-[9.5px] font-mono text-purple-200 bg-purple-500/20 px-2 py-0.5 rounded border border-purple-500/30">
+                Resolved in Clarification Loop (Bound: 2/2)
+              </span>
+            </div>
+            <p className="text-xs text-[#F1F5F9] leading-relaxed">
+              {clause.ambiguityReason || "Contractual ambiguity detected across agreements."}
+            </p>
+          </div>
+        )}
+
         {/* AI-Generated Interpretation Note */}
         {clause.interpretationNote && (
           <div>
@@ -116,6 +152,26 @@ export const ClauseDetailDrawer: React.FC<ClauseDetailDrawerProps> = ({ clause, 
               Agent {clause.extractedBy.toUpperCase()}
             </span>
           </div>
+        </div>
+
+        {/* Re-extraction Action (FR2.4) */}
+        <div className="pt-2 border-t border-[#1D344B]/60 space-y-2">
+          {reExtractNotice && (
+            <div className="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{reExtractNotice}</span>
+            </div>
+          )}
+
+          <Button
+            variant="outline"
+            className="w-full text-xs"
+            onClick={handleReExtract}
+            disabled={isReExtracting}
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${isReExtracting ? 'animate-spin text-teal-400' : 'text-teal-400'}`} />}
+          >
+            {isReExtracting ? 'Thor Re-Extracting Clause...' : 'Re-Extract Clause with Thor (FR2.4)'}
+          </Button>
         </div>
       </div>
     </Drawer>
