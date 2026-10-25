@@ -60,3 +60,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Plans and Temporary Notes
+plan.md

@@ -80,6 +80,11 @@ async def upload_contract_file(
     filename = file.filename or "uploaded_document"
     text = ""
     
+    # Safely clean form fields to strings
+    clean_user_title = title if (isinstance(title, str) and title.strip()) else None
+    clean_user_counterparty = counterparty if (isinstance(counterparty, str) and counterparty.strip()) else None
+    clean_user_type = contract_type if (isinstance(contract_type, str) and contract_type.strip()) else None
+    
     if filename.lower().endswith(".pdf"):
         try:
             import pypdf
@@ -104,11 +109,11 @@ async def upload_contract_file(
     legal_indicators = [
         "agreement", "contract", "parties", "provider", "customer", "vendor",
         "effective date", "governing law", "termination", "liability", "indemnif",
-        "warranty", "service level", "confidentiality", "obligations", "intellectual property",
-        "jurisdiction", "downtime", "remedy"
+        "warranty", "service level", "sla", "confidentiality", "obligations", "intellectual property",
+        "jurisdiction", "downtime", "remedy", "services", "payment", "notice"
     ]
     legal_score = sum(1 for w in legal_indicators if w in text.lower())
-    is_contract = legal_score >= 3
+    is_contract = legal_score >= 2 or len(text.strip()) > 300
 
     # Check canonical matches (A1..D1, STD)
     canonical_key = None
@@ -119,6 +124,7 @@ async def upload_contract_file(
             break
 
     contract_id = f"cnt-{uuid.uuid4().hex[:8]}"
+    wf_res = None
 
     # Load events for sentinel audit
     bundle_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "odin_data", "bundle"))
@@ -145,9 +151,9 @@ async def upload_contract_file(
 
         contract = Contract(
             id=f"cnt-{canonical_key}",
-            title=matched["title"],
-            counterparty=matched["counterparty"],
-            contractType=matched["contractType"],
+            title=clean_user_title or matched["title"],
+            counterparty=clean_user_counterparty or matched["counterparty"],
+            contractType=clean_user_type or matched["contractType"],
             status=matched.get("status", "active"),
             analysisStatus="completed",
             riskLevel=matched.get("riskLevel", "medium"),
@@ -168,12 +174,12 @@ async def upload_contract_file(
         )
     elif not is_contract:
         # NON-CONTRACTUAL DOCUMENT (e.g. Shell lecture notes)
-        clean_title = title or filename.replace('.pdf','').replace('.txt','').replace('_',' ')
+        clean_title = clean_user_title or filename.replace('.pdf','').replace('.txt','').replace('_',' ')
         contract = Contract(
             id=contract_id,
             title=clean_title,
-            counterparty=counterparty or "N/A (Non-Contractual)",
-            contractType=contract_type or "Educational / Non-Legal Asset",
+            counterparty=clean_user_counterparty or "N/A (Non-Contractual)",
+            contractType=clean_user_type or "Educational / Non-Legal Asset",
             status="under_review",
             analysisStatus="completed",
             riskLevel="low",
@@ -206,7 +212,7 @@ async def upload_contract_file(
         record_workflow_execution(wf_res)
 
         out = wf_res.thor
-        clean_title = title or out.title or filename.replace('.pdf','').replace('.txt','').replace('_',' ')
+        clean_title = clean_user_title or out.title or filename.replace('.pdf','').replace('.txt','').replace('_',' ')
         clauses_list = []
         for cl in out.clauses:
             clauses_list.append(ContractClause(
@@ -238,8 +244,8 @@ async def upload_contract_file(
         contract = Contract(
             id=contract_id,
             title=clean_title,
-            counterparty=counterparty or out.counterparty or "Counterparty",
-            contractType=contract_type or "Commercial Services Agreement",
+            counterparty=clean_user_counterparty or out.counterparty or "Counterparty",
+            contractType=clean_user_type or "Commercial Services Agreement",
             status="active" if clauses_list else "under_review",
             analysisStatus="completed",
             riskLevel="critical" if wf_res.heimdall.yes_branch_claims or exposure > 1000000 else "high" if exposure > 100000 else "medium",
@@ -266,12 +272,133 @@ async def upload_contract_file(
     
     # Synchronize with dynamic War Room State Store
     from app.services.war_room_state import war_room_state
+    from app.models.schemas import Risk, TimelineEvent, ContractReport, RecommendedAction, CrossContractConflict
+    
+    clean_norm_id = normalize_contract_id(contract.id)
+    if text:
+        war_room_state.raw_contracts[clean_norm_id] = text
+
     war_room_state.contracts = [c for c in war_room_state.contracts if c.id != contract.id]
     war_room_state.contracts.insert(0, contract)
+    
+    # Synchronize Clauses & Obligations
     for cl in contract.clauses:
+        war_room_state.clauses = [c for c in war_room_state.clauses if c.id != cl.id]
         war_room_state.clauses.append(cl)
     for ob in contract.obligations:
+        war_room_state.obligations = [o for o in war_room_state.obligations if o.id != ob.id]
         war_room_state.obligations.append(ob)
+
+    # Synchronize Risks from Loki
+    if wf_res and hasattr(wf_res, 'loki') and wf_res.loki and hasattr(wf_res.loki, 'risks_and_claims'):
+        for idx, claim in enumerate(wf_res.loki.risks_and_claims):
+            c_conflict = None
+            if claim.cross_contract_conflict:
+                c_conflict = CrossContractConflict(
+                    conflictingContractId=claim.cross_contract_conflict.get("conflicting_contract", "cnt-UNK"),
+                    conflictingContractName=claim.cross_contract_conflict.get("conflicting_contract", "Conflicting Contract"),
+                    conflictingClauseCitation=claim.cross_contract_conflict.get("conflicting_clause", "Clause"),
+                    conflictSummary=claim.cross_contract_conflict.get("conflict_summary", "Cross-contract conflict")
+                )
+            dyn_risk = Risk(
+                id=f"rsk-up-{clean_norm_id}-{idx+1:02d}",
+                title=claim.title,
+                contractId=contract.id,
+                contractName=contract.title,
+                counterparty=contract.counterparty,
+                severity=claim.severity,
+                likelihood=claim.likelihood,
+                impact=claim.impact,
+                financialExposureINR=claim.financial_exposure_inr,
+                status="investigating",
+                evidenceClause=claim.evidence_clause,
+                verbatimExcerpt=claim.verbatim_excerpt,
+                explanation=claim.trap_description,
+                recommendedNextStep=claim.hypothesis,
+                identifiedBy="loki",
+                createdAt=f"{war_room_state.clock_date}T00:00:00Z",
+                crossContractConflict=c_conflict
+            )
+            if not any(r.title.lower() == dyn_risk.title.lower() for r in war_room_state.risks):
+                war_room_state.risks.insert(0, dyn_risk)
+
+    # Synchronize Timeline Milestones from Norns
+    if wf_res and hasattr(wf_res, 'norns') and wf_res.norns and hasattr(wf_res.norns, 'milestones'):
+        for idx, ms in enumerate(wf_res.norns.milestones):
+            t_event = TimelineEvent(
+                id=f"time-up-{clean_norm_id}-{idx+1:02d}",
+                contractId=contract.id,
+                contractName=contract.title,
+                counterparty=contract.counterparty,
+                title=ms.title,
+                description=ms.description,
+                date=ms.date,
+                clauseCitation=ms.clause_citation,
+                eventType=ms.event_type,
+                severity=ms.severity,
+                status=ms.status,
+                consequenceIfIgnored=ms.consequence_if_ignored,
+                projectedLiabilityINR=ms.projected_liability_inr,
+                responsibleParty="Quillhub Legal Operations"
+            )
+            if not any(e.id == t_event.id for e in war_room_state.timeline_events):
+                war_room_state.timeline_events.append(t_event)
+
+    # Synchronize Actions & Briefing Report from Odin
+    if wf_res and hasattr(wf_res, 'odin') and wf_res.odin:
+        rec_actions = []
+        for idx, act in enumerate(wf_res.odin.final_actions):
+            ra = RecommendedAction(
+                id=f"act-up-{clean_norm_id}-{idx+1:02d}",
+                priority=act.priority if hasattr(act, 'priority') and act.priority else "high",
+                title=act.title,
+                description=act.description,
+                contractId=contract.id,
+                contractName=contract.title,
+                deadline=contract.renewalDate or "2027-09-30",
+                actionOwner="VP Legal & Operations",
+                financialImpactINR=contract.financialExposureINR or 50000.0,
+                arbitrationVerdictRef="Council Directive",
+                status=act.status if hasattr(act, 'status') and act.status else "pending"
+            )
+            rec_actions.append(ra)
+            war_room_state.actions.append(ra)
+
+        crit_count = len([r for r in war_room_state.risks if r.contractId == contract.id and r.severity == "critical"])
+        high_count = len([r for r in war_room_state.risks if r.contractId == contract.id and r.severity == "high"])
+
+        rep = ContractReport(
+            id=f"rep-{contract.id}",
+            contractId=contract.id,
+            title=f"Executive Audit Dossier: {contract.title}",
+            generatedAt=f"{war_room_state.clock_date}T12:00:00Z",
+            scope=f"Single Contract Audit ({clean_norm_id})",
+            totalContractsEvaluated=1,
+            totalExposureINR=contract.financialExposureINR,
+            criticalRisksCount=crit_count,
+            highRisksCount=high_count,
+            worstCasePenaltiesINR=contract.financialExposureINR,
+            evidenceSummary=wf_res.odin.executive_summary if (hasattr(wf_res.odin, 'executive_summary') and wf_res.odin.executive_summary) else contract.summary,
+            verifiedByAgents=["Thor", "The Norns", "Loki", "Heimdall", "Tyr", "Odin"],
+            recommendedActions=rec_actions or [
+                RecommendedAction(
+                    id=f"act-up-{clean_norm_id}-monitor",
+                    priority="medium",
+                    title=f"Continuous Operational Monitoring for {contract.counterparty}",
+                    description=f"Maintain compliance with {contract.title} covenants and renewal deadlines.",
+                    contractId=contract.id,
+                    contractName=contract.title,
+                    deadline=contract.renewalDate or "2027-09-30",
+                    actionOwner="VP Legal & Operations",
+                    financialImpactINR=contract.financialExposureINR,
+                    arbitrationVerdictRef="Governing Terms",
+                    status="pending"
+                )
+            ]
+        )
+        war_room_state.per_contract_reports[clean_norm_id] = rep
+        war_room_state.reports = [r for r in war_room_state.reports if r.id != rep.id]
+        war_room_state.reports.insert(0, rep)
     
     return contract
 
