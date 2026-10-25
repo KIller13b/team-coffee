@@ -1,105 +1,257 @@
-from app.models.schemas import (
-    Contract, Risk, AgentInfo, AgentMessage, WorkflowStep, TimelineEvent, ContractReport
-)
+"""
+Ground-truth Quillhub seed data directly extracted from canonical bundle files:
+- contracts/A1.txt, A2.txt, A3.txt, B1.txt, B2.txt, C1.txt, D1.txt, STD.txt
+- company/context.txt
+- events/events_drop1.jsonl, events_drop2.jsonl
+- clock.json
+"""
 
 SEED_CONTRACTS = [
     {
-        "id": "cnt-001",
-        "title": "Cloud Infrastructure & Managed Services Agreement",
-        "counterparty": "Apex Cloud Systems Pvt. Ltd.",
-        "contractType": "Cloud Infrastructure & Hosting",
+        "id": "cnt-A1",
+        "title": "Cloud Service Agreement Cover Page",
+        "counterparty": "StratoNode Inc.",
+        "contractType": "Master Cloud Infrastructure Agreement",
         "status": "active",
-        "analysisStatus": "flagged",
-        "riskLevel": "high",
-        "startDate": "2025-01-01",
-        "endDate": "2026-12-31",
-        "renewalDate": "2026-11-15",
-        "durationMonths": 24,
-        "jurisdiction": "Bangalore, India (Arbitration and Conciliation Act 1996)",
-        "totalValueINR": 24000000.0,
-        "financialExposureINR": 3600000.0,
-        "autoRenewalConditions": "Automatic 12-month renewal unless 45 days written notice is served via registered mail prior to renewal anniversary.",
-        "paymentSchedule": "Quarterly advance payments of ₹60,00,000 due within 15 days of invoice date.",
-        "confidenceScore": 0.94,
-        "summary": "Core multi-region hybrid cloud deployment agreement. Contains stringent termination notice periods and conflicting data localization liabilities.",
-        "tags": ["Cloud", "High Exposure", "Auto-Renewal Window", "Arbitration Risk"],
-        "relatedContractIds": ["cnt-002", "cnt-005"],
+        "value": "$180,000 / yr",
+        "effectiveDate": "2026-06-01",
+        "expiryDate": "2028-05-31",
+        "autoRenew": True,
+        "renewalNoticeDays": 60,
+        "governingLaw": "State of Delaware",
+        "clausesCount": 8,
+        "criticalObligationsCount": 2,
+        "verifiedCitationsCount": 3,
+        "description": "Primary upstream cloud compute, storage, and networking provider hosting Quillhub's Route Optimizer platform.",
         "clauses": [
             {
-                "id": "cls-001-1",
-                "contractId": "cnt-001",
-                "field": "Auto-Renewal & Notice Window",
-                "extractedValue": "45-Day Prior Written Notice Required",
-                "clauseCitation": "Section 14.2 (Term and Expiration)",
-                "confidenceScore": 0.97,
-                "extractedBy": "thor",
-                "category": "renewal",
-                "verbatimText": "This Agreement shall automatically renew for successive terms of twelve (12) months unless either party gives written notice of non-renewal at least forty-five (45) days prior to the expiration of the Initial Term or any Renewal Term.",
-                "interpretationNote": "Notice deadline is 15 November 2026. Failure to dispatch notice locks organization into additional ₹2.40 Cr liability."
-            }
-        ],
-        "obligations": [
+                "id": "cls-a1-term",
+                "section": "Section B (Subscription Period & Renewal)",
+                "title": "Term and Automatic Renewal",
+                "text": "Agreement shall commence on the Effective Date and continue for a period of twenty-four (24) months, automatically renewing for successive twelve (12) month periods unless either party provides written notice of non-renewal at least sixty (60) days prior to the expiration of the current Term.",
+                "type": "obligation",
+                "isFlagged": True
+            },
             {
-                "id": "ob-001-1",
-                "contractId": "cnt-001",
-                "title": "Serve Non-Renewal Notice or File Extension Amendment",
-                "description": "Send registered legal dispatch to Apex Cloud prior to the 45-day cutoff to avoid unintended 12-month rollover.",
-                "dueDate": "2026-11-15",
-                "status": "due",
-                "severity": "critical",
-                "financialExposureINR": 24000000.0,
-                "responsibleParty": "internal",
-                "clauseReference": "Section 14.2"
+                "id": "cls-a1-priority",
+                "section": "Special Terms §2",
+                "title": "SLA Governance Hierarchy",
+                "text": "Provider uptime commitments and Service Credits are governed exclusively by the CloudCore Service Level Agreement (Attachment A2). In the event of any conflict between this Cover Page, the Standard Terms, and Attachment A2, Attachment A2 shall control with respect to service availability.",
+                "type": "compliance",
+                "isFlagged": False
             }
         ]
     },
     {
-        "id": "cnt-002",
-        "title": "Enterprise ERP Solution Master License & Support",
-        "counterparty": "Vanguard Enterprise Tech India Ltd.",
-        "contractType": "Master Services Agreement (MSA)",
-        "status": "active",
-        "analysisStatus": "pending_arbitration",
-        "riskLevel": "critical",
-        "startDate": "2024-03-15",
-        "endDate": "2027-03-14",
-        "renewalDate": "2027-02-14",
-        "durationMonths": 36,
-        "jurisdiction": "Mumbai, India (Bombay High Court exclusive)",
-        "totalValueINR": 52000000.0,
-        "financialExposureINR": 8500000.0,
-        "autoRenewalConditions": "Manual renegotiation required 90 days before expiration; automatic transition to month-to-month at +25% premium.",
-        "paymentSchedule": "Annual license fee of ₹1,60,00,000 paid semi-annually in advance.",
-        "confidenceScore": 0.96,
-        "summary": "Core ERP system for financial accounting and inventory. Contains a cross-contract termination conflict with Apex Cloud hosting schedule.",
-        "tags": ["Core Platform", "Critical Dependency", "Cross-Contract Conflict"],
-        "relatedContractIds": ["cnt-001"],
+        "id": "cnt-A2",
+        "title": "StratoNode CloudCore Service Level Agreement",
+        "counterparty": "StratoNode Inc.",
+        "contractType": "Service Level Agreement (SLA)",
+        "status": "critical",
+        "value": "30% Fee Credit Max",
+        "effectiveDate": "2026-06-01",
+        "expiryDate": "2028-05-31",
+        "autoRenew": True,
+        "renewalNoticeDays": 14,
+        "governingLaw": "State of Delaware",
+        "clausesCount": 6,
+        "criticalObligationsCount": 3,
+        "verifiedCitationsCount": 4,
+        "description": "Governs availability guarantees, outage penalties, and credit claim procedures for cloud compute.",
         "clauses": [
             {
-                "id": "cls-002-1",
-                "contractId": "cnt-002",
-                "field": "Cross-Default & Third-Party Host Mandate",
-                "extractedValue": "Host migration requires 90-day certified architectural review",
-                "clauseCitation": "Section 9.3 (Infrastructure Prerequisites)",
-                "confidenceScore": 0.94,
-                "extractedBy": "thor",
-                "category": "termination",
-                "verbatimText": "Customer shall not relocate or migrate the installed Software instances to an alternative hosting infrastructure without ninety (90) days prior written submission of architectural compatibility certifications to Vanguard.",
-                "interpretationNote": "Collides with Apex Cloud’s 45-day non-renewal clause: terminating Apex Cloud without 90-day Vanguard notice creates an operational breach."
-            }
-        ],
-        "obligations": [
+                "id": "cls-a2-avail",
+                "section": "Section 2.1",
+                "title": "Availability Commitment",
+                "text": "StratoNode will use commercially reasonable efforts to make CloudCore Compute available with a Monthly Uptime Percentage of at least 99.5% during any calendar month.",
+                "type": "sla",
+                "isFlagged": True
+            },
             {
-                "id": "ob-002-1",
-                "contractId": "cnt-002",
-                "title": "Submit Hosting Architecture Change Notice to Vanguard",
-                "description": "Provide 90-day migration notification if Apex Cloud contract is not renewed.",
-                "dueDate": "2026-11-05",
-                "status": "due",
-                "severity": "critical",
-                "financialExposureINR": 4000000.0,
-                "responsibleParty": "internal",
-                "clauseReference": "Section 9.3"
+                "id": "cls-a2-window",
+                "section": "Section 3.2",
+                "title": "Service Credit Claim Window (14-Day Limit)",
+                "text": "To receive a Service Credit, Customer must submit a claim in writing to StratoNode within fourteen (14) calendar days following the end of the calendar month in which the incident occurred, or within fourteen (14) calendar days of the incident itself, whichever is earlier. Failure to submit such claim within the applicable window shall constitute a waiver of the Service Credit.",
+                "type": "obligation",
+                "isFlagged": True
+            },
+            {
+                "id": "cls-a2-tier",
+                "section": "Section 3.1",
+                "title": "Credit Tiers",
+                "text": "Monthly Uptime < 99.5% and >= 95.0% entitles Customer to a 15% Service Credit applied against subsequent billing cycles.",
+                "type": "penalty",
+                "isFlagged": False
+            }
+        ]
+    },
+    {
+        "id": "cnt-A3",
+        "title": "Amendment No. 1 to Service Level Agreement",
+        "counterparty": "StratoNode Inc.",
+        "contractType": "SLA Amendment",
+        "status": "active",
+        "value": "Refines A2 Exclusions",
+        "effectiveDate": "2026-11-15",
+        "expiryDate": "2028-05-31",
+        "autoRenew": True,
+        "renewalNoticeDays": 0,
+        "governingLaw": "State of Delaware",
+        "clausesCount": 3,
+        "criticalObligationsCount": 1,
+        "verifiedCitationsCount": 2,
+        "description": "Amends scheduled maintenance exclusion rules under CloudCore SLA.",
+        "clauses": [
+            {
+                "id": "cls-a3-maint",
+                "section": "Section 1.3",
+                "title": "Scheduled Downtime Notice Requirement",
+                "text": "Scheduled Maintenance announced with at least seventy-two (72) hours prior notice shall not be counted as Downtime, provided such maintenance does not exceed four (4) hours in any calendar month.",
+                "type": "compliance",
+                "isFlagged": False
+            }
+        ]
+    },
+    {
+        "id": "cnt-B1",
+        "title": "Cloud Service Agreement — Harbor Retail Solutions",
+        "counterparty": "Harbor Retail Solutions LLC",
+        "contractType": "Enterprise Customer Agreement",
+        "status": "critical",
+        "value": "$120,000 / yr",
+        "effectiveDate": "2026-09-01",
+        "expiryDate": "2027-08-31",
+        "autoRenew": True,
+        "renewalNoticeDays": 30,
+        "governingLaw": "State of New York",
+        "clausesCount": 12,
+        "criticalObligationsCount": 4,
+        "verifiedCitationsCount": 5,
+        "description": "Quillhub's largest enterprise retail customer with strict 99.9% uptime commitment.",
+        "clauses": [
+            {
+                "id": "cls-b1-uptime",
+                "section": "Section 4.1",
+                "title": "Service Level Warranty & Immediate Termination Right",
+                "text": "Quillhub warrants that the Service will achieve a Monthly Uptime Percentage of at least 99.9% during each calendar month. In the event Monthly Uptime falls below 99.5% in any single month, Customer may terminate this Agreement immediately for cause upon written notice and receive a pro-rata refund of prepaid fees.",
+                "type": "sla",
+                "isFlagged": True
+            },
+            {
+                "id": "cls-b1-cap",
+                "section": "Special Terms §4",
+                "title": "Aggregate Liability Cap",
+                "text": "Each party's maximum aggregate liability arising out of or related to this Agreement shall be capped at two times (2x) the fees paid or payable by Customer in the preceding twelve (12) months ($240,000).",
+                "type": "liability",
+                "isFlagged": True
+            }
+        ]
+    },
+    {
+        "id": "cnt-B2",
+        "title": "Data Processing and Security Addendum (DPA)",
+        "counterparty": "Harbor Retail Solutions LLC",
+        "contractType": "Data Protection Addendum",
+        "status": "active",
+        "value": "$1,000,000 Super-Cap",
+        "effectiveDate": "2026-09-01",
+        "expiryDate": "2027-08-31",
+        "autoRenew": True,
+        "renewalNoticeDays": 0,
+        "governingLaw": "State of New York",
+        "clausesCount": 9,
+        "criticalObligationsCount": 2,
+        "verifiedCitationsCount": 3,
+        "description": "Governs handling of retail delivery telemetry, driver data, and 48-hour incident reporting.",
+        "clauses": [
+            {
+                "id": "cls-b2-notice",
+                "section": "Section 7.2",
+                "title": "48-Hour Incident Notification Mandate",
+                "text": "Provider shall notify Customer in writing without undue delay and in any event within forty-eight (48) hours of becoming aware of any confirmed Security Incident or material infrastructure disruption affecting Customer Data.",
+                "type": "obligation",
+                "isFlagged": True
+            }
+        ]
+    },
+    {
+        "id": "cnt-C1",
+        "title": "Cloud Service Agreement — Vantage Logistics Corp.",
+        "counterparty": "Vantage Logistics Corp.",
+        "contractType": "Logistics Customer Agreement",
+        "status": "active",
+        "value": "$85,000 / yr",
+        "effectiveDate": "2026-10-15",
+        "expiryDate": "2028-10-14",
+        "autoRenew": True,
+        "renewalNoticeDays": 30,
+        "governingLaw": "State of Texas",
+        "clausesCount": 7,
+        "criticalObligationsCount": 2,
+        "verifiedCitationsCount": 3,
+        "description": "Mid-market trucking and fleet dispatch customer operating under Route Optimizer Pro.",
+        "clauses": [
+            {
+                "id": "cls-c1-ins",
+                "section": "Section 6.3",
+                "title": "Continuous Insurance Covenant",
+                "text": "Vendor shall maintain at its own expense Commercial General Liability insurance of not less than $2,000,000 and Technology Errors & Omissions / Cyber Liability of not less than $3,000,000 throughout the Term.",
+                "type": "compliance",
+                "isFlagged": True
+            }
+        ]
+    },
+    {
+        "id": "cnt-D1",
+        "title": "Independent Contractor Agreement — Pixelwright Design",
+        "counterparty": "Pixelwright Design Studio LLC",
+        "contractType": "Subcontractor / Development SOW",
+        "status": "critical",
+        "value": "$100,000 Milestone Total",
+        "effectiveDate": "2026-12-01",
+        "expiryDate": "2027-04-30",
+        "autoRenew": False,
+        "renewalNoticeDays": 0,
+        "governingLaw": "State of California",
+        "clausesCount": 8,
+        "criticalObligationsCount": 3,
+        "verifiedCitationsCount": 4,
+        "description": "Contractor developing React front-end component library under Milestones M1 through M4.",
+        "clauses": [
+            {
+                "id": "cls-d1-deemed",
+                "section": "Section 3.2",
+                "title": "14-Day Deemed Acceptance Trap",
+                "text": "Client shall have fourteen (14) business days following receipt of each Deliverable to inspect and accept or reject the Deliverable. If Client fails to provide written notice of rejection detailing non-conformities within said 14 business days, the Deliverable shall be deemed accepted and Contractor may invoice the applicable milestone fee ($25,000 per milestone).",
+                "type": "obligation",
+                "isFlagged": True
+            }
+        ]
+    },
+    {
+        "id": "cnt-STD",
+        "title": "Common Paper Cloud Service Agreement Standard Terms 2.0",
+        "counterparty": "Quillhub Master Terms",
+        "contractType": "Canonical Standard Terms",
+        "status": "active",
+        "value": "Incorporated by Reference",
+        "effectiveDate": "2026-01-01",
+        "expiryDate": "2028-12-31",
+        "autoRenew": False,
+        "renewalNoticeDays": 0,
+        "governingLaw": "State of Delaware",
+        "clausesCount": 16,
+        "criticalObligationsCount": 1,
+        "verifiedCitationsCount": 4,
+        "description": "Standard terms incorporated by reference across all Quillhub customer agreements.",
+        "clauses": [
+            {
+                "id": "cls-std-liab",
+                "section": "Section 8.2",
+                "title": "Mutual Consequential Damages Waiver",
+                "text": "Neither party shall be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, revenues, data, or business opportunities, regardless of legal theory.",
+                "type": "liability",
+                "isFlagged": False
             }
         ]
     }
@@ -108,30 +260,59 @@ SEED_CONTRACTS = [
 SEED_RISKS = [
     {
         "id": "rsk-001",
-        "title": "Cross-Contract Notice Collision: Apex Cloud Termination vs Vanguard ERP Prerequisite",
-        "contractId": "cnt-001",
-        "contractName": "Cloud Infrastructure & Managed Services Agreement",
-        "counterparty": "Apex Cloud Systems Pvt. Ltd.",
+        "title": "Upstream/Downstream SLA Mismatch",
         "severity": "critical",
-        "likelihood": "imminent",
-        "impact": "catastrophic",
-        "financialExposureINR": 8500000.0,
-        "status": "arbitrated",
-        "evidenceClause": "Apex Section 14.2 collides with Vanguard Section 9.3",
-        "verbatimExcerpt": "Apex requires 45-day non-renewal notice (due 15 Nov 2026), but Vanguard ERP mandates 90-day prior written architectural submission before migrating off certified infrastructure.",
-        "explanation": "Terminating Apex Cloud without Vanguard’s 90-day prior certification leaves the enterprise in direct breach of the Vanguard ERP MSA.",
-        "recommendedNextStep": "Tyr Ruling: Do not issue unilateral cancellation to Apex Cloud yet. File an urgent 3-month contract extension rider with Apex while submitting the Vanguard architectural review package.",
-        "identifiedBy": "loki",
-        "disputedBy": "thor",
-        "arbitratedBy": "tyr",
-        "arbitrationVerdict": "Tyr determined that the cross-contract conflict exposes ₹85,00,000 in immediate damages. A 90-day extension bridge agreement is mandatory before any migration cutover.",
-        "createdAt": "2026-10-24T08:30:00Z",
-        "crossContractConflict": {
-            "conflictingContractId": "cnt-002",
-            "conflictingContractName": "Enterprise ERP Solution Master License & Support",
-            "conflictingClauseCitation": "Section 9.3 (Infrastructure Prerequisites)",
-            "conflictSummary": "Vanguard requires 90 days notice for hosting infrastructure relocation, whereas Apex Cloud requires 45 days notice for non-renewal."
-        }
+        "category": "Cross-Contract Collision",
+        "contractId": "cnt-A2",
+        "counterparty": "StratoNode vs. Harbor Retail",
+        "summary": "Quillhub guarantees 99.9% uptime to Harbor Retail (B1 §4.1) but only receives 99.5% from StratoNode (A2 §2.1). An outage exceeding 43 minutes breaches Harbor Retail while StratoNode owes negligible credit.",
+        "financialExposure": "$120,000 (Immediate Contract Termination Risk)",
+        "actionRequired": "Negotiate SLA alignment or procure hot-failover multi-region infrastructure.",
+        "identifiedBy": "Loki",
+        "verifiedBy": "Heimdall",
+        "citation": "A2 §2.1 vs B1 §4.1"
+    },
+    {
+        "id": "rsk-002",
+        "title": "StratoNode March 3 Outage Refund Forfeiture Window",
+        "severity": "critical",
+        "category": "Active Notice Deadline",
+        "contractId": "cnt-A2",
+        "counterparty": "StratoNode Inc.",
+        "summary": "190-minute complete outage occurred March 3 in us-west-2 (Event E-04). Section 3.2 requires written claim within 14 calendar days (March 17). Today is March 15: exactly 48 hours remaining before unrecoverable loss of $4,500 credit.",
+        "financialExposure": "$4,500 (15% Service Credit)",
+        "actionRequired": "Dispatch formal SLA Service Credit claim demand letter to billing-claims@stratonode.com immediately.",
+        "identifiedBy": "The Norns",
+        "verifiedBy": "Heimdall (Event E-04)",
+        "citation": "A2 §3.2 & Event E-04"
+    },
+    {
+        "id": "rsk-003",
+        "title": "Pixelwright Milestone M3 Deemed Acceptance Clock",
+        "severity": "high",
+        "category": "Contractor Trap",
+        "contractId": "cnt-D1",
+        "counterparty": "Pixelwright Design Studio LLC",
+        "summary": "Pixelwright submitted Milestone M3 on Feb 28 (Event E-03). Under Section 3.2, failure to reject within 14 business days deems code accepted. Window expires March 18. Staging tests show 32 broken hooks and 84.2% test coverage (below 90% threshold).",
+        "financialExposure": "$25,000 (Automatic Payment Liability)",
+        "actionRequired": "Send formal Notice of Deficiency and Conditional Testing Extension before March 18.",
+        "identifiedBy": "Loki",
+        "verifiedBy": "Heimdall (Event E-03)",
+        "citation": "D1 §3.2"
+    },
+    {
+        "id": "rsk-004",
+        "title": "Corporate Cyber Liability Policy Lapse",
+        "severity": "high",
+        "category": "Insurance Covenant Breach",
+        "contractId": "cnt-C1",
+        "counterparty": "Meridian Mutual / Harbor & Vantage",
+        "summary": "Meridian Mutual Cyber Policy MML-2024-88715 expires June 30, 2027. Both customer contracts (B1 §8.1, C1 §6.3) mandate continuous $3M cyber liability coverage. Operating post-June 30 without renewal binder causes immediate material breach.",
+        "financialExposure": "$3,000,000 (Loss of Coverage)",
+        "actionRequired": "Bind renewal terms and issue ACORD certificates before July 1, 2027.",
+        "identifiedBy": "Thor",
+        "verifiedBy": "The Norns (Clock CP-3)",
+        "citation": "context.txt & C1 §6.3"
     }
 ]
 
@@ -139,127 +320,67 @@ SEED_AGENTS = [
     {
         "id": "odin",
         "name": "Odin",
-        "title": "Supreme Orchestrator",
-        "role": "Orchestrates the workflow and delegates tasks",
+        "title": "The Supreme Orchestrator & Allfather",
+        "role": "Synthesizes council intelligence and drafts prioritized, citation-backed legal actions",
         "avatar": "👑",
         "color": "#60A5FA",
-        "status": "running",
-        "currentTask": "Synthesizing cross-contract conflict resolution for Apex Cloud & Vanguard ERP",
-        "latestActivity": "Coordinating multi-agent deliberation on upcoming November 15 renewal cutoff",
-        "completedTasksCount": 142,
-        "totalProcessedCount": 156,
-        "lastActiveTimestamp": "2026-10-25T12:24:00Z",
-        "responsibilities": [
-            "Deconstruct organizational queries into multi-agent subtasks",
-            "Manage agent lifecycle, concurrency, and dependency pipelines"
-        ],
-        "inputSummary": "Ingests raw contract portfolios, ERP procurement feeds, and user simulation requests.",
-        "outputSummary": "Dispatches execution instructions to Thor, Norns, Loki, Heimdall, and routes impasses to Tyr.",
-        "evidenceReferences": ["Task-ORD-8812", "Portfolio-Scan-Q4"]
+        "status": "ready",
+        "activeTasks": ["Synthesizing Portfolio Risk Report", "Drafting CEO Action Items"],
+        "model": "Claude 3.5 Sonnet / High-Level Arbiter"
     },
     {
         "id": "thor",
         "name": "Thor",
-        "title": "Clause & Evidence Extractor",
-        "role": "Extracts contract terms and supporting evidence",
+        "title": "The Clause & Evidence Extractor",
+        "role": "Extracts terms, obligations, SLAs, and verbatim unhallucinated citations",
         "avatar": "⚡",
         "color": "#2DD4BF",
-        "status": "completed",
-        "currentTask": "Completed verbatim extraction of 42 clauses across 10 master agreements",
-        "latestActivity": "Extracted Section 14.2 (Apex Cloud) and Section 9.3 (Vanguard ERP) with 97% confidence",
-        "completedTasksCount": 384,
-        "totalProcessedCount": 384,
-        "lastActiveTimestamp": "2026-10-25T12:18:00Z",
-        "responsibilities": [
-            "Parse unstructured contract PDFs into structured semantic clause models",
-            "Anchor each extracted field to verbatim text"
-        ],
-        "inputSummary": "OCR text streams, digital PDF contracts, amendments.",
-        "outputSummary": "Structured clause entities with verbatim citation anchors.",
-        "evidenceReferences": ["Apex-Cloud-Contract:p.14-15", "Vanguard-MSA:p.9"]
+        "status": "ready",
+        "activeTasks": ["Parsing contracts A1–D1", "Verifying exact text anchors"],
+        "model": "Deterministic Verbatim Parser"
     },
     {
         "id": "norns",
-        "name": "Norns",
-        "title": "Timeline & Obligation Oracle",
-        "role": "Builds obligation timelines and worst-case projections",
+        "name": "The Norns",
+        "title": "The Temporal Destiny & Timeline Engine",
+        "role": "Tracks calendar commitments, upcoming notice countdowns, and worst-case dollar liabilities",
         "avatar": "⏳",
-        "color": "#A855F7",
-        "status": "running",
-        "currentTask": "Simulating worst-case penalty cascades across 6-month scrub horizon",
-        "latestActivity": "Calculated ₹1.67 Cr cumulative penalty exposure under +3 month simulated clock",
-        "completedTasksCount": 219,
-        "totalProcessedCount": 228,
-        "lastActiveTimestamp": "2026-10-25T12:22:00Z",
-        "responsibilities": [
-            "Weave recurring and discrete obligations into unified temporal graphs",
-            "Execute Monte Carlo and deterministic worst-case penalty projections"
-        ],
-        "inputSummary": "Extracted clauses, calendar milestones, payment terms.",
-        "outputSummary": "Chronological timeline events, overdue risk alerts.",
-        "evidenceReferences": ["Timeline-Graph-v4", "Cascade-Matrix-2026"]
+        "color": "#C084FC",
+        "status": "ready",
+        "activeTasks": ["Computing 48h StratoNode cutoff", "Tracking March 18 Pixelwright deadline"],
+        "model": "Date-Math Engine + Holidays Calendar"
     },
     {
         "id": "loki",
         "name": "Loki",
-        "title": "Adversarial Risk Challenger",
-        "role": "Challenges contract interpretations and identifies hidden risks",
-        "avatar": "🔥",
+        "title": "The Adversarial Red-Team Counsel",
+        "role": "Hunts for cross-contract contradictions, territorial traps, and exposure loopholes",
+        "avatar": "😈",
         "color": "#F87171",
-        "status": "waiting",
-        "currentTask": "Awaiting Tyr verification on Vanguard ERP cross-default challenge",
-        "latestActivity": "Flagged ₹85L cross-contract liability trap between Apex Cloud non-renewal and Vanguard MSA",
-        "completedTasksCount": 167,
-        "totalProcessedCount": 174,
-        "lastActiveTimestamp": "2026-10-25T12:20:00Z",
-        "responsibilities": [
-            "Execute red-team adversarial legal reasoning against naive contract readings",
-            "Identify cross-contract clause collisions and unstated dependencies"
-        ],
-        "inputSummary": "Multi-contract clause pairs, historical enforcement precedents.",
-        "outputSummary": "Adversarial risk challenges, severity escalations.",
-        "evidenceReferences": ["Collision-Apex-Vanguard", "Audit-Exposure-Vanguard"]
+        "status": "ready",
+        "activeTasks": ["Analyzing StratoNode vs Harbor SLA gap", "Identifying deemed acceptance risk"],
+        "model": "Adversarial Legal Reasoner"
     },
     {
         "id": "heimdall",
         "name": "Heimdall",
-        "title": "External Sentinel & Fact-Checker",
-        "role": "Monitors events and verifies risk claims",
+        "title": "The Real-World Event Sentinel",
+        "role": "Ingests live operational logs (events_drop1.jsonl), filters noise, and verifies breach reality",
         "avatar": "👁️",
-        "color": "#38BDF8",
-        "status": "completed",
-        "currentTask": "Verified absence of formal cancellation dispatches in enterprise ERP and mail gateways",
-        "latestActivity": "Audited JNPT customs port strike status; confirmed 72-hour dwell time breach at Nhava Sheva",
-        "completedTasksCount": 298,
-        "totalProcessedCount": 301,
-        "lastActiveTimestamp": "2026-10-25T12:21:00Z",
-        "responsibilities": [
-            "Ingest enterprise event streams (SAP ERP, Jira, Outlook, DocuSign)",
-            "Cross-reference external legal bulletins, regulatory circulars"
-        ],
-        "inputSummary": "External APIs, enterprise mail servers, shipping port telemetry.",
-        "outputSummary": "Fact-verification receipts, evidentiary confirmations.",
-        "evidenceReferences": ["Mail-Log-Audit-1012", "JNPT-Port-Advisory-221"]
+        "color": "#34D399",
+        "status": "ready",
+        "activeTasks": ["Auditing March 3 190-min outage in E-04", "Verifying customer email E-05"],
+        "model": "Event Stream Correlator"
     },
     {
         "id": "tyr",
         "name": "Tyr",
-        "title": "Arbiter & Prescriptive Strategist",
-        "role": "Resolves disagreements and prepares recommended actions",
+        "title": "The Binding Arbiter & Action Drafter",
+        "role": "Resolves Loki/Heimdall disagreements and generates ready-to-send formal notice instruments",
         "avatar": "⚖️",
         "color": "#FBBF24",
-        "status": "running",
-        "currentTask": "Drafting conclusive executive ruling and action plan for Apex-Vanguard impasse",
-        "latestActivity": "Rendered binding decision: Halt unilateral termination; execute 3-month bridge rider",
-        "completedTasksCount": 112,
-        "totalProcessedCount": 115,
-        "lastActiveTimestamp": "2026-10-25T12:25:00Z",
-        "responsibilities": [
-            "Adjudicate deadlocks and competing interpretations between Thor, Loki, and Norns",
-            "Formulate actionable, legally defensible, and audited recommendations"
-        ],
-        "inputSummary": "Adversarial challenges from Loki, evidence bundles from Thor/Heimdall.",
-        "outputSummary": "Definitive rulings, prioritized action checklists.",
-        "evidenceReferences": ["Ruling-TYR-2026-08", "Action-Directive-P1"]
+        "status": "ready",
+        "activeTasks": ["Drafting StratoNode $4,500 Demand", "Drafting M3 Rejection Notice"],
+        "model": "Legal Instrument Generator"
     }
 ]

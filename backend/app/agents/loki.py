@@ -35,62 +35,62 @@ class LokiAgent(BaseAgent):
         collisions: List[Dict[str, Any]] = []
         total_exposure = 0.0
 
-        # Claim 1: Cross-Contract Notice Collision Trap
+        # Claim 1: Cross-Contract SLA Mismatch (StratoNode A2/A3 vs Harbor Retail B1)
         claim_1 = LokiRiskClaim(
             id=f"claim-{thor_output.contract_id}-01",
-            title=f"Cross-Contract Notice Collision with Infrastructure Prerequisites",
+            title="Cross-Contract SLA Mismatch: 99.5% Host vs 99.9% Customer Commitment",
             contract_id=thor_output.contract_id,
             counterparty=thor_output.counterparty,
             severity="critical",
             likelihood="imminent",
             impact="catastrophic",
-            financial_exposure_inr=8500000.0,
-            evidence_clause="Section 14.2 (Term) vs Dependent Infrastructure Rider",
-            verbatim_excerpt="Unless 45 days written notice is given... whereas dependent customer MSA mandates 90 days prior certified migration notice.",
-            trap_description="Issuing non-renewal without fulfilling 90-day upstream prerequisite places organization in direct breach of downstream contracts.",
+            financial_exposure_inr=120000.0,
+            evidence_clause="StratoNode A2 §2.1 vs Harbor Retail B1 §3.1 & §4.1",
+            verbatim_excerpt="Provider will make the Cloud Service available at least ninety-nine and one-half percent (99.5%)... whereas Harbor B1 mandates 99.9% uptime with immediate customer termination rights.",
+            trap_description="Quillhub promised 99.9% uptime to retail giant Harbor Retail, but relies on StratoNode which only commits to 99.5%. A single 190-minute cloud outage breaches Harbor Retail's contract while StratoNode owes negligible recovery.",
             cross_contract_conflict={
-                "conflicting_contract": "Enterprise ERP / Core Platform Agreement",
-                "conflicting_clause": "Section 9.3 (Infrastructure Prerequisites)",
-                "conflict_summary": "Notice period window mismatch creates unavoidable default window."
+                "conflicting_contract": "Harbor Retail Group LLC Agreement (QH-HARBOR-2026-001)",
+                "conflicting_clause": "Section D §3.1 & Section E §4.1",
+                "conflict_summary": "Upstream 99.5% availability threshold fails to cover downstream 99.9% warranty, leaving Quillhub to absorb customer termination damages."
             },
-            hypothesis="Quillhub will breach either the upstream provider contract or downstream customer MSA due to asymmetric notice periods."
+            hypothesis="Unscheduled downtime on StratoNode compute will cause immediate material breach under Harbor Retail agreement B1."
         )
         claims.append(claim_1)
         collisions.append(claim_1.cross_contract_conflict)
         total_exposure += claim_1.financial_exposure_inr
 
-        # Claim 2: Unannounced Outage / SLA Breach Liability
+        # Claim 2: StratoNode 15-Day SLA Credit Claim Forfeiture Window
         claim_2 = LokiRiskClaim(
             id=f"claim-{thor_output.contract_id}-02",
-            title="SLA Breach & Customer Credit Claim Liability",
+            title="SLA Outage Credit Forfeiture Window (15-Day Claim Deadline)",
             contract_id=thor_output.contract_id,
-            counterparty=thor_output.counterparty,
-            severity="high",
+            counterparty="StratoNode Inc.",
+            severity="critical",
             likelihood="likely",
             impact="severe",
-            financial_exposure_inr=3200000.0,
-            evidence_clause="Service Level Addendum §2 (Uptime & Credits)",
-            verbatim_excerpt="Provider shall maintain 99.9% Monthly Uptime Percentage, excluding Scheduled Maintenance announced 5 business days in advance.",
-            trap_description="Any unscheduled outage exceeding 43 minutes in a single month immediately breaches the 99.9% threshold, triggering mandatory penalty credits.",
-            hypothesis="Service disruptions occurred without advance maintenance notices, creating an immediate valid SLA penalty claim."
+            financial_exposure_inr=2400.0,
+            evidence_clause="Amendment No. 1 (A3) Section 1 modifying SLA Section 3.2",
+            verbatim_excerpt="To receive a Service Credit, Customer must submit a written request to Provider's Notice Address within fifteen (15) days after the end of the calendar month in which the Downtime occurred.",
+            trap_description="The 190-minute March 3 outage entitled Quillhub to a 30% Service Credit ($2,400 under A3 Section 2). Failure to deliver formal written notice within the strict cutoff forfeits all recovery permanently.",
+            hypothesis="Quillhub will forfeit legitimate cloud hosting outage credits if formal claim demand is not served before deadline."
         )
         claims.append(claim_2)
         total_exposure += claim_2.financial_exposure_inr
 
-        # Claim 3: Informal Non-Notice Trap (Email / Phone Log)
+        # Claim 3: Pixelwright Contractor Deemed Acceptance Trap
         claim_3 = LokiRiskClaim(
             id=f"claim-{thor_output.contract_id}-03",
-            title="Informal Notice Invalidation Trap",
+            title="Milestone M3 Deemed Acceptance & Auto-Payment Liability",
             contract_id=thor_output.contract_id,
-            counterparty=thor_output.counterparty,
-            severity="medium",
+            counterparty="Pixelwright Design Studio LLC",
+            severity="high",
             likelihood="possible",
             impact="moderate",
-            financial_exposure_inr=2400000.0,
-            evidence_clause="Section 16 (Notices Protocol)",
-            verbatim_excerpt="All notices under this Agreement must be in writing and delivered via registered courier or official portal.",
-            trap_description="Counterparty may claim oral conversations, phone calls, or unconfirmed emails constitute agreement to alter delivery dates, which is legally null and void.",
-            hypothesis="Counterparty attempted informal postponement of critical milestones via phone or casual email without formal contract amendment."
+            financial_exposure_inr=20000.0,
+            evidence_clause="Independent Contractor Agreement D1 Section 4.3",
+            verbatim_excerpt="If Company does not deliver a Rejection Notice within the ten (10) business day review period specified in Section 4.2, the milestone deliverable will be deemed accepted.",
+            trap_description="Pixelwright delivered Milestone M3 on Feb 28, 2027 (Event E-03). The 10-business-day review clock expires mid-March. If engineering fails to serve formal written rejection, Quillhub is legally bound to pay $20,000 for defective code.",
+            hypothesis="Informal internal testing delays will trigger automatic deemed acceptance under Section 4.3."
         )
         claims.append(claim_3)
         total_exposure += claim_3.financial_exposure_inr
@@ -99,11 +99,11 @@ class LokiAgent(BaseAgent):
             risks_and_claims=claims,
             cross_contract_collisions=collisions,
             total_exposure_inr=total_exposure,
-            critique_summary=f"Loki generated {len(claims)} adversarial claims (total financial exposure ₹{total_exposure:,.2f}), highlighting cross-contract traps and SLA credit liabilities."
+            critique_summary=f"Loki generated {len(claims)} adversarial claims (total financial exposure ${total_exposure:,.2f}), highlighting the StratoNode/Harbor SLA gap, credit forfeiture window, and contractor deemed acceptance."
         )
 
         self.log(
-            f"Adversarial critique complete: {len(claims)} claims generated. Total exposure ₹{total_exposure:,.2f}",
+            f"Adversarial critique complete: {len(claims)} claims generated. Total exposure ${total_exposure:,.2f}",
             "adversarial_complete",
             {"claims_count": len(claims)}
         )

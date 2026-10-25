@@ -2,57 +2,73 @@ from pydantic import BaseModel
 from typing import List, Optional, Literal
 
 RiskLevel = Literal['low', 'medium', 'high', 'critical']
-ContractStatus = Literal['active', 'under_review', 'expiring_soon', 'terminated', 'disputed']
+ContractStatus = Literal['active', 'under_review', 'expiring_soon', 'terminated', 'disputed', 'critical']
 AnalysisStatus = Literal['completed', 'processing', 'pending_arbitration', 'flagged']
 AgentStatus = Literal['idle', 'running', 'completed', 'waiting', 'failed']
 
 class ContractClause(BaseModel):
     id: str
-    contractId: str
-    field: str
-    extractedValue: str
-    clauseCitation: str
-    confidenceScore: float
-    verbatimText: str
-    extractedBy: Literal['thor', 'odin']
-    category: str
+    contractId: str = ""
+    field: str = ""
+    extractedValue: str = ""
+    clauseCitation: str = ""
+    confidenceScore: float = 0.95
+    verbatimText: str = ""
+    extractedBy: Literal['thor', 'odin'] = 'thor'
+    category: str = "general"
     interpretationNote: Optional[str] = None
+    section: Optional[str] = None
+    title: Optional[str] = None
+    text: Optional[str] = None
+    type: Optional[str] = None
+    isFlagged: Optional[bool] = False
 
 class Obligation(BaseModel):
     id: str
-    contractId: str
-    title: str
-    description: str
-    dueDate: str
-    status: Literal['upcoming', 'due', 'overdue', 'completed']
-    severity: RiskLevel
-    financialExposureINR: float
-    responsibleParty: Literal['internal', 'counterparty', 'shared']
-    clauseReference: str
+    contractId: str = ""
+    title: str = ""
+    description: str = ""
+    dueDate: str = ""
+    status: Literal['upcoming', 'due', 'overdue', 'completed'] = 'upcoming'
+    severity: RiskLevel = 'medium'
+    financialExposureINR: float = 0.0
+    responsibleParty: Literal['internal', 'counterparty', 'shared'] = 'counterparty'
+    clauseReference: str = ""
 
 class Contract(BaseModel):
     id: str
     title: str
-    counterparty: str
-    contractType: str
-    status: ContractStatus
-    analysisStatus: AnalysisStatus
-    riskLevel: RiskLevel
-    startDate: str
-    endDate: str
-    renewalDate: str
-    durationMonths: int
-    jurisdiction: str
-    totalValueINR: float
-    financialExposureINR: float
-    autoRenewalConditions: str
-    paymentSchedule: str
-    confidenceScore: float
-    summary: str
+    counterparty: str = "Unknown"
+    contractType: str = "Cloud Service Agreement"
+    status: ContractStatus = "active"
+    analysisStatus: AnalysisStatus = "completed"
+    riskLevel: RiskLevel = "medium"
+    startDate: str = "2026-08-01"
+    endDate: str = "2027-07-31"
+    renewalDate: str = "2027-06-01"
+    durationMonths: int = 12
+    jurisdiction: str = "State of Delaware"
+    totalValueINR: float = 0.0
+    financialExposureINR: float = 0.0
+    autoRenewalConditions: str = ""
+    paymentSchedule: str = ""
+    confidenceScore: float = 0.95
+    summary: str = ""
     tags: List[str] = []
     relatedContractIds: Optional[List[str]] = None
     clauses: List[ContractClause] = []
     obligations: List[Obligation] = []
+    # Seed data compatibility fields
+    value: Optional[str] = None
+    effectiveDate: Optional[str] = None
+    expiryDate: Optional[str] = None
+    autoRenew: Optional[bool] = None
+    renewalNoticeDays: Optional[int] = None
+    governingLaw: Optional[str] = None
+    clausesCount: Optional[int] = None
+    criticalObligationsCount: Optional[int] = None
+    verifiedCitationsCount: Optional[int] = None
+    description: Optional[str] = None
 
 class CrossContractConflict(BaseModel):
     conflictingContractId: str
@@ -63,24 +79,31 @@ class CrossContractConflict(BaseModel):
 class Risk(BaseModel):
     id: str
     title: str
-    contractId: str
-    contractName: str
-    counterparty: str
-    severity: RiskLevel
-    likelihood: Literal['unlikely', 'possible', 'likely', 'imminent']
-    impact: Literal['low', 'moderate', 'severe', 'catastrophic']
-    financialExposureINR: float
-    status: Literal['open', 'investigating', 'arbitrated', 'mitigated', 'accepted']
-    evidenceClause: str
-    verbatimExcerpt: str
-    explanation: str
-    recommendedNextStep: str
-    identifiedBy: Literal['loki', 'heimdall', 'norns', 'thor']
-    createdAt: str
+    contractId: str = ""
+    contractName: str = ""
+    counterparty: str = "Unknown"
+    severity: RiskLevel = "medium"
+    likelihood: Literal['unlikely', 'possible', 'likely', 'imminent'] = "likely"
+    impact: Literal['low', 'moderate', 'severe', 'catastrophic'] = "severe"
+    financialExposureINR: float = 0.0
+    status: Literal['open', 'investigating', 'arbitrated', 'mitigated', 'accepted'] = "open"
+    evidenceClause: str = ""
+    verbatimExcerpt: str = ""
+    explanation: str = ""
+    recommendedNextStep: str = ""
+    identifiedBy: str = "loki"
+    createdAt: str = "2027-01-15T00:00:00Z"
     disputedBy: Optional[str] = None
     arbitratedBy: Optional[Literal['tyr']] = None
     arbitrationVerdict: Optional[str] = None
     crossContractConflict: Optional[CrossContractConflict] = None
+    # Compatibility fields for seed data
+    category: Optional[str] = None
+    summary: Optional[str] = None
+    financialExposure: Optional[str] = None
+    actionRequired: Optional[str] = None
+    verifiedBy: Optional[str] = None
+    citation: Optional[str] = None
 
 class AgentInfo(BaseModel):
     id: str
@@ -89,16 +112,18 @@ class AgentInfo(BaseModel):
     role: str
     avatar: str
     color: str
-    status: AgentStatus
-    currentTask: str
-    latestActivity: str
-    completedTasksCount: int
-    totalProcessedCount: int
-    responsibilities: List[str]
-    inputSummary: str
-    outputSummary: str
-    evidenceReferences: List[str]
-    lastActiveTimestamp: str
+    status: str = "running"
+    currentTask: str = "Analyzing contracts"
+    latestActivity: str = "Executing risk evaluation"
+    completedTasksCount: int = 100
+    totalProcessedCount: int = 100
+    responsibilities: List[str] = []
+    inputSummary: str = ""
+    outputSummary: str = ""
+    evidenceReferences: List[str] = []
+    lastActiveTimestamp: Optional[str] = "2027-01-15T12:00:00Z"
+    activeTasks: Optional[List[str]] = None
+    model: Optional[str] = None
 
 class AgentMessage(BaseModel):
     id: str

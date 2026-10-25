@@ -3,8 +3,8 @@
  * Supports configurable base URL and graceful mock fallback when offline or in demo mode.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA !== 'false'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA === 'true'
 
 export interface ApiResponse<T> {
   data: T

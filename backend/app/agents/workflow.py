@@ -104,12 +104,17 @@ class ContractWarRoomWorkflow:
         all_logs.extend(self.loki.logs)
 
         # ---------------------------------------------------------
-        # STEP 3: HEIMDALL ◄── REAL-WORLD EVENTS
+        # STEP 3: HEIMDALL ◄── REAL-WORLD EVENTS (Filtered to Simulated Clock)
         # "IS THIS ACTUALLY HAPPENING?"
         # ---------------------------------------------------------
+        # Only evaluate events that have occurred on or before clock_date
+        visible_events = [
+            e for e in real_world_events
+            if not e.get("timestamp") or e.get("timestamp", "")[:10] <= clock_date
+        ]
         heimdall_output = self.heimdall.monitor_and_verify(
             loki_output=loki_output,
-            real_world_events=real_world_events
+            real_world_events=visible_events
         )
         all_logs.extend(self.heimdall.logs)
 

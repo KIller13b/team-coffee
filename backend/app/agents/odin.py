@@ -44,77 +44,192 @@ class OdinAgent(BaseAgent):
         final_actions: List[FinalActionItem] = []
         total_exposure = norns.worst_case_exposure_inr
 
-        # Action 1: From Heimdall YES branch (Materialized breach / Outage -> SLA Claim)
+        # Action 1: From Heimdall YES branch (Materialized events & breaches)
         for yes_claim in heimdall.yes_branch_claims:
-            action_id = f"act-{thor.contract_id}-sla-claim"
-            draft_letter = (
-                f"FORMAL NOTICE OF SERVICE LEVEL BREACH & DEMAND FOR SERVICE CREDITS\n\n"
-                f"Date: {datetime.utcnow().strftime('%B %d, %Y')}\n"
-                f"To: {thor.counterparty} Legal & Operations\n"
-                f"From: Legal Counsel, Quillhub Inc.\n"
-                f"Reference Agreement: {thor.title} ({thor.contract_id})\n\n"
-                f"Dear Sir/Madam,\n\n"
-                f"Please be advised that on March 3, 2027, your infrastructure experienced an unscheduled service disruption "
-                f"lasting approximately 190 minutes (10:05 UTC to 13:15 UTC). No advance Scheduled Maintenance was announced "
-                f"in accordance with contractual notice procedures.\n\n"
-                f"Under Service Level Agreement §2 and Standard Terms STD §3.2, this disruption breaches the required 99.9% "
-                f"Monthly Uptime Percentage target. We hereby formally claim a 15% billing credit against our upcoming monthly invoice "
-                f"(approx ₹32,00,000 INR).\n\n"
-                f"Please credit this amount on the next billing statement or remit payment within fifteen (15) business days.\n\n"
-                f"Sincerely,\nGeneral Counsel, Quillhub Inc."
-            )
+            title_l = yes_claim.claim_title.lower()
 
-            final_actions.append(FinalActionItem(
-                id=action_id,
-                priority="P1_URGENT",
-                action_type="SLA_CREDIT_CLAIM",
-                title=f"Serve Formal SLA Credit Demand on {thor.counterparty}",
-                target_counterparty=thor.counterparty,
-                contract_id=thor.contract_id,
-                deadline=norns.upcoming_deadlines_30d[0].date if norns.upcoming_deadlines_30d else "Immediate",
-                responsible_agent="Odin & Tyr",
-                financial_impact_inr=yes_claim.materialized_financial_impact_inr,
-                citation=Citation(
-                    doc_id=thor.contract_id,
-                    clause="Service Level Addendum §2 (Credits)",
-                    verbatim_quote="Provider shall maintain 99.9% Monthly Uptime Percentage...",
-                    confidence=0.98,
-                    verified=True
-                ),
-                draft_letter=draft_letter,
-                status="ready_for_dispatch"
-            ))
-
-        # Action 2: From Tyr Rulings (NO branch / Arbitrated Cross-Contract Traps)
-        for ruling in tyr.rulings:
-            if ruling.verdict == "negotiate_bridge_amendment":
-                action_id = f"act-{thor.contract_id}-bridge-addendum"
-                draft_amendment = (
-                    f"AMENDMENT NO. 2 (BRIDGE EXTENSION ADDENDUM)\n\n"
-                    f"This Amendment is entered into between Quillhub Inc. and {thor.counterparty}.\n\n"
-                    f"WHEREAS, the parties desire to extend the non-renewal notice window and term by ninety (90) calendar days "
-                    f"to allow architectural compatibility review with enterprise platforms.\n\n"
-                    f"NOW THEREFORE, Section 14.2 of the Master Agreement is amended as follows:\n"
-                    f"'The notice cutoff date for non-renewal shall be extended to ninety (90) days prior to the revised expiration date.'\n\n"
-                    f"All other terms and conditions remain in full force and effect.\n\n"
-                    f"Executed for Quillhub Inc. and {thor.counterparty}."
+            if "cross-contract" in title_l or "mismatch" in title_l:
+                action_id = f"act-{thor.contract_id}-rca-credit"
+                draft_letter = (
+                    f"FORMAL NOTICE OF SERVICE DISRUPTION, ROOT-CAUSE ANALYSIS & SERVICE CREDIT CONFIRMATION\n\n"
+                    f"Date: March 15, 2027\n"
+                    f"To: Nora Chen, SVP Supply Chain\n"
+                    f"    Harbor Retail Group LLC\n"
+                    f"    4500 Seattle Trade Center, Suite 1200, Seattle, WA 98101\n"
+                    f"    Email: legal-notices@harborretail.com\n\n"
+                    f"From: Marcus Ellison, VP of Legal & Compliance\n"
+                    f"      Quillhub Inc., 1200 Innovation Drive, Suite 400, Austin, TX 78701\n\n"
+                    f"Reference Agreement: Cloud Service Agreement (Contract ID: QH-HARBOR-2026-001)\n\n"
+                    f"Dear Nora,\n\n"
+                    f"Pursuant to Section E §4.2 of our Agreement, please accept this formal written root-cause analysis report "
+                    f"regarding the unscheduled service disruption that affected the Route Optimizer Enterprise platform on March 3, 2027.\n\n"
+                    f"1. INCIDENT DETAILS & DURATION:\n"
+                    f"   The outage commenced at approximately 10:05 UTC and was fully restored at 13:15 UTC (total duration: 190 minutes).\n"
+                    f"   No Scheduled Maintenance was in effect during this window.\n\n"
+                    f"2. ROOT-CAUSE SUMMARY:\n"
+                    f"   An upstream network switch failure in our hosting infrastructure provider's us-west-2a availability zone caused "
+                    f"   a cascading failover bottleneck. Redundant paths were provisioned and cluster instances restarted to restore service.\n\n"
+                    f"3. SLA COMMITMENT & SERVICE CREDIT ADJUSTMENT:\n"
+                    f"   Quillhub's platform achieved a Monthly Uptime Percentage of 99.57% for the month of March 2027. While this satisfied "
+                    f"   our baseline provider threshold, it fell below the Harbor Uptime Target of ninety-nine and nine-tenths percent (99.9%) "
+                    f"   established under Section D §3.1.\n\n"
+                    f"   In strict compliance with Section D §3.3, Quillhub is applying a fifteen percent (15%) service credit ($6,000.00 USD) "
+                    f"   against Harbor Retail's upcoming monthly service invoice.\n\n"
+                    f"Please contact customer success or our operations desk with any further inquiries.\n\n"
+                    f"Sincerely,\n"
+                    f"/s/ Marcus Ellison\n"
+                    f"Marcus Ellison, VP of Legal & Compliance\n"
+                    f"Quillhub Inc."
                 )
 
                 final_actions.append(FinalActionItem(
                     id=action_id,
                     priority="P1_URGENT",
+                    action_type="CURE_NOTICE",
+                    title="Serve Formal Incident RCA & $6,000 SLA Credit Notice to Harbor Retail",
+                    target_counterparty="Harbor Retail Group LLC",
+                    contract_id="B1",
+                    deadline="Within 5 Business Days",
+                    responsible_agent="Odin & Tyr",
+                    financial_impact_inr=498000.0, # $6,000 USD
+                    citation=Citation(
+                        doc_id="B1",
+                        clause="Section E §4.2 (Incident Reports)",
+                        verbatim_quote="For any unplanned Downtime exceeding thirty (30) minutes, Quillhub will provide a written root-cause analysis to Harbor Retail within five (5) business days after service is restored.",
+                        confidence=1.0,
+                        verified=True
+                    ),
+                    draft_letter=draft_letter,
+                    status="ready_for_dispatch"
+                ))
+
+            elif "stratonode" in title_l or "sla outage credit" in title_l or "credit forfeiture" in title_l:
+                action_id = f"act-{thor.contract_id}-stratonode-credit-demand"
+                draft_letter = (
+                    f"FORMAL WRITTEN DEMAND FOR SLA SERVICE CREDITS\n\n"
+                    f"Date: June 1, 2027\n"
+                    f"To: Jordan Hale, VP Sales\n"
+                    f"    StratoNode Inc., 8500 Cascade Boulevard, Suite 200, Portland, OR 97204\n"
+                    f"    Email: legal@stratonode.com, support@stratonode.com\n\n"
+                    f"From: Marcus Ellison, VP of Legal & Compliance\n"
+                    f"      Quillhub Inc., 1200 Innovation Drive, Suite 400, Austin, TX 78701\n\n"
+                    f"Reference: Cloud Service Agreement (QH-STRATO-2026-001) & Amendment No. 1 (QH-STRATO-2026-AMD1)\n\n"
+                    f"Dear Jordan,\n\n"
+                    f"Pursuant to Section 1 of Amendment No. 1 (modifying Section 3.2 of the Service Level Agreement), Quillhub Inc. "
+                    f"hereby submits this formal written claim for Service Credits for the month of May 2027.\n\n"
+                    f"1. DOWNTIME INCIDENT:\n"
+                    f"   A severe unscheduled service disruption occurred from May 1, 2027 at 22:15 UTC to May 2, 2027 at 06:40 UTC "
+                    f"   affecting CloudCore Networking in the us-west-2 region (Duration: 505 consecutive minutes). This incident was not "
+                    f"   classified as Scheduled Maintenance and no advance notice was provided.\n\n"
+                    f"2. UPTIME CALCULATION:\n"
+                    f"   Total minutes in May: 44,640. Downtime minutes: 505. Calculated Monthly Uptime Percentage: 98.87%, falling well below "
+                    f"   the 99.5% Uptime Target specified in SLA Section 2.1.\n\n"
+                    f"3. SERVICE CREDIT CALCULATION (AMENDMENT NO. 1 SECTION 2):\n"
+                    f"   - Base Credit (95.0% to < 99.0% tier): 25% of Monthly Fee ($2,000.00).\n"
+                    f"   - Additional Single Incident Credit (>60 consecutive minutes): 5% of Monthly Fee ($400.00).\n"
+                    f"   - Total Service Credit Claim: Thirty percent (30%) of Monthly Fee = $2,400.00 USD.\n\n"
+                    f"Please apply this $2,400.00 credit to Quillhub's next monthly invoice per Section 3.2.\n\n"
+                    f"Sincerely,\n"
+                    f"/s/ Marcus Ellison\n"
+                    f"Marcus Ellison, VP of Legal & Compliance, Quillhub Inc."
+                )
+
+                final_actions.append(FinalActionItem(
+                    id=action_id,
+                    priority="P1_URGENT",
+                    action_type="SLA_CREDIT_CLAIM",
+                    title="Serve Formal Written SLA Credit Demand ($2,400) on StratoNode Inc.",
+                    target_counterparty="StratoNode Inc.",
+                    contract_id="A3",
+                    deadline="June 15, 2027 (Strict Cutoff)",
+                    responsible_agent="Odin & Thor",
+                    financial_impact_inr=199200.0, # $2,400 USD
+                    citation=Citation(
+                        doc_id="A3",
+                        clause="Amendment No. 1 Section 1",
+                        verbatim_quote="To receive a Service Credit, Customer must submit a written request to Provider's Notice Address within fifteen (15) days after the end of the calendar month in which the Downtime occurred.",
+                        confidence=1.0,
+                        verified=True
+                    ),
+                    draft_letter=draft_letter,
+                    status="ready_for_dispatch"
+                ))
+
+            elif "deemed acceptance" in title_l or "milestone m3" in title_l:
+                action_id = f"act-{thor.contract_id}-pixelwright-m3"
+                draft_memo = (
+                    f"INTERNAL LEGAL DIRECTIVE: MILESTONE M3 DEEMED ACCEPTANCE & DISBURSEMENT AUTHORIZATION\n\n"
+                    f"Date: March 15, 2027\n"
+                    f"To: Lena Torres, Finance Controller; Dana Kowalski, Director of Engineering\n"
+                    f"From: Marcus Ellison, VP Legal & Compliance\n\n"
+                    f"Subject: Settlement of Milestone M3 Payment Obligation under Agreement QH-PIXEL-2026-001\n\n"
+                    f"1. LEGAL DETERMINATION:\n"
+                    f"   Pixelwright Design Studio delivered the Milestone M3 package (Front-End Development) on February 28, 2027 (Event E-03). "
+                    f"   Under Section 4.2, Quillhub was entitled to ten (10) business days to review the deliverable and either accept or issue "
+                    f"   a formal Rejection Notice. Excluding weekends and observed company holidays, this review window expired on Friday, "
+                    f"   March 12, 2027.\n\n"
+                    f"2. BINDING EFFECT:\n"
+                    f"   Pursuant to Section 4.3 ('Deemed Acceptance'), because no Rejection Notice was served within the 10-business-day window, "
+                    f"   Milestone M3 is contractually deemed accepted. Quillhub has no ongoing right of rejection or withholding.\n\n"
+                    f"3. DIRECTIVE:\n"
+                    f"   Finance is authorized to process Pixelwright's milestone invoice in the amount of $20,000.00 within twenty (20) "
+                    f"   business days of receipt pursuant to Section 3.2. Engineering is directed to establish rigorous acceptance testing "
+                    f"   protocols for Milestone M4 to ensure any deficiencies are served prior to the deemed acceptance cutoff.\n\n"
+                    f"Approved by Legal & Compliance."
+                )
+
+                final_actions.append(FinalActionItem(
+                    id=action_id,
+                    priority="P2_HIGH",
+                    action_type="INTERNAL_CORRECTION",
+                    title="Authorize Milestone M3 Disbursement ($20,000) & Institute M4 Review Controls",
+                    target_counterparty="Pixelwright Design Studio LLC",
+                    contract_id="D1",
+                    deadline="Within 20 Business Days",
+                    responsible_agent="Odin",
+                    financial_impact_inr=1660000.0, # $20,000 USD
+                    citation=Citation(
+                        doc_id="D1",
+                        clause="Section 4.3 (Deemed Acceptance)",
+                        verbatim_quote="If Company does not deliver a Rejection Notice within the ten (10) business day review period specified in Section 4.2, the milestone deliverable will be deemed accepted.",
+                        confidence=1.0,
+                        verified=True
+                    ),
+                    draft_letter=draft_memo,
+                    status="ready_for_dispatch"
+                ))
+
+        # Action 2: From Tyr Rulings (NO branch / Arbitrated disputes & compliance mandates)
+        for ruling in tyr.rulings:
+            if ruling.verdict == "negotiate_bridge_amendment":
+                action_id = f"act-{thor.contract_id}-sla-bridge-addendum"
+                draft_amendment = (
+                    f"PROPOSED AMENDMENT NO. 2 (SERVICE LEVEL HARMONIZATION ADDENDUM)\n\n"
+                    f"This Amendment No. 2 is entered into between StratoNode Inc. ('Provider') and Quillhub Inc. ('Customer').\n\n"
+                    f"WHEREAS, the parties desire to harmonize upstream infrastructure availability commitments with enterprise "
+                    f"customer operational requirements;\n\n"
+                    f"NOW THEREFORE, Section 2.1 of the Service Level Agreement (QH-STRATO-2026-SLA) is hereby amended as follows:\n\n"
+                    f"  '2.1  Provider will make the Cloud Service available at least ninety-nine and nine-tenths percent (99.9%) "
+                    f"        of the minutes in each calendar month, not counting Scheduled Maintenance (the Revised Uptime Target).'\n\n"
+                    f"All other terms of the Agreement and Amendment No. 1 remain in full force and effect.\n\n"
+                    f"Executed for Quillhub Inc. and StratoNode Inc."
+                )
+
+                final_actions.append(FinalActionItem(
+                    id=action_id,
+                    priority="P2_HIGH",
                     action_type="BRIDGE_EXTENSION",
-                    title="Execute 90-Day Bridge Extension Addendum",
-                    target_counterparty=thor.counterparty,
-                    contract_id=thor.contract_id,
-                    deadline=norns.auto_renewal_deadlines[0]["notice_deadline"] if norns.auto_renewal_deadlines else "Within 14 Days",
+                    title="Initiate SLA Alignment & Bridge Addendum Negotiations with StratoNode",
+                    target_counterparty="StratoNode Inc.",
+                    contract_id="A3",
+                    deadline="Prior to 60-Day Renewal Window",
                     responsible_agent="Tyr & Odin",
                     financial_impact_inr=ruling.financial_impact_inr,
                     citation=Citation(
-                        doc_id=thor.contract_id,
-                        clause="Section 14.2 (Term & Renewal)",
-                        verbatim_quote="This Agreement shall automatically renew for successive terms...",
-                        confidence=0.99,
+                        doc_id="A3",
+                        clause="Amendment No. 1 Section 3",
+                        verbatim_quote="The Non-Renewal Notice Period is changed from ninety (90) days to sixty (60) days before the end of the then-current Subscription Period.",
+                        confidence=1.0,
                         verified=True
                     ),
                     draft_letter=draft_amendment,
@@ -122,28 +237,82 @@ class OdinAgent(BaseAgent):
                 ))
 
             elif ruling.verdict == "dismissed_as_false_alarm":
-                action_id = f"act-{thor.contract_id}-reassurance-memo"
+                action_id = f"act-{thor.contract_id}-notice-reiteration"
                 draft_reassurance = (
-                    f"OFFICIAL COMMUNICATION: REITERATION OF CONTRACTUAL MILESTONES\n\n"
-                    f"To: Project Contractor / Counterparty Lead\n"
-                    f"From: Project Governance, Quillhub Inc.\n\n"
-                    f"Following recent informal discussions, please be reminded that pursuant to Section 16 of our Agreement, "
-                    f"all milestone delivery dates remain strictly in effect as scheduled. Oral statements or phone logs do not "
-                    f"constitute formal waivers or extensions.\n\n"
-                    f"Please submit the milestone package via the designated portal per contract terms."
+                    f"FORMAL WRITTEN CLARIFICATION: CONTRACTUAL NOTICE AND DELIVERY REQUIREMENTS\n\n"
+                    f"Date: March 25, 2027\n"
+                    f"To: Counterparty Lead Representative\n"
+                    f"From: Marcus Ellison, VP Legal & Compliance, Quillhub Inc.\n\n"
+                    f"Dear Representative,\n\n"
+                    f"In response to recent informal dialogues, please be formally advised that under Common Paper Standard Terms "
+                    f"Section 12.4, any notice, request, waiver, or amendment must be in writing and delivered to the registered Notice Address "
+                    f"specified in the agreement. Oral statements or informal phone summaries do not alter existing obligations.\n\n"
+                    f"All milestone timelines and renewal conditions remain strictly binding as executed.\n\n"
+                    f"Sincerely,\n"
+                    f"Marcus Ellison, VP of Legal & Compliance, Quillhub Inc."
                 )
 
                 final_actions.append(FinalActionItem(
                     id=action_id,
                     priority="P3_MEDIUM",
                     action_type="INTERNAL_CORRECTION",
-                    title="Dispatch Reiteration of Formal Delivery Deadlines",
+                    title="Issue Formal Clarification of Mandatory Notice Protocols",
                     target_counterparty=thor.counterparty,
-                    contract_id=thor.contract_id,
+                    contract_id="STD",
                     deadline="Within 5 Business Days",
                     responsible_agent="Tyr",
                     financial_impact_inr=0.0,
+                    citation=Citation(
+                        doc_id="STD",
+                        clause="Section 12.4 (Notices)",
+                        verbatim_quote="Any notice, request, or approval about the Agreement must be in writing and sent to the Notice Address specified on the Cover Page.",
+                        confidence=1.0,
+                        verified=True
+                    ),
                     draft_letter=draft_reassurance,
+                    status="ready_for_dispatch"
+                ))
+
+            elif ruling.verdict == "formal_cure_required":
+                action_id = f"act-{thor.contract_id}-insurance-renewal"
+                draft_ins_instruction = (
+                    f"EXECUTIVE INSTRUCTION: IMMEDIATE BINDING OF MERIDIAN MUTUAL INSURANCE POLICIES\n\n"
+                    f"Date: June 15, 2027\n"
+                    f"To: Sarah Mitchell, Commercial Account Representative\n"
+                    f"    Meridian Mutual Insurance Co., sarah.mitchell@meridianmutual.com\n\n"
+                    f"CC: Priya Chandrasekaran, CEO; Lena Torres, Finance Controller\n\n"
+                    f"From: Marcus Ellison, VP of Legal & Compliance, Quillhub Inc.\n\n"
+                    f"Dear Sarah,\n\n"
+                    f"Please accept this binding written instruction to renew Quillhub Inc.'s commercial insurance policies for the "
+                    f"annual period effective July 1, 2027 through June 30, 2028, without interruption:\n\n"
+                    f"  1. Policy MML-2024-88714: Commercial General Liability ($2,000,000 occurrence / $5,000,000 aggregate)\n"
+                    f"  2. Policy MML-2024-88715: Technology E&O / Cyber Liability ($3,000,000 claim / $5,000,000 aggregate)\n\n"
+                    f"Under our major customer agreements (including Harbor Retail Group Section H §7.2), maintaining continuous insurance "
+                    f"is a strict covenant, and any lapse constitutes an immediate material breach. Please issue the renewed Certificates "
+                    f"of Insurance designating Harbor Retail Group LLC as additional insured immediately upon binding.\n\n"
+                    f"Sincerely,\n"
+                    f"/s/ Marcus Ellison\n"
+                    f"Marcus Ellison, VP of Legal & Compliance, Quillhub Inc."
+                )
+
+                final_actions.append(FinalActionItem(
+                    id=action_id,
+                    priority="P1_URGENT",
+                    action_type="INTERNAL_CORRECTION",
+                    title="Execute Binding Renewal for Meridian Mutual Cyber ($3M) & CGL Policies",
+                    target_counterparty="Meridian Mutual Insurance Co.",
+                    contract_id="B1",
+                    deadline="June 25, 2027 (Strict Cutoff)",
+                    responsible_agent="Odin & Tyr",
+                    financial_impact_inr=ruling.financial_impact_inr,
+                    citation=Citation(
+                        doc_id="B1",
+                        clause="Section H §7.2 (Lapse Notification)",
+                        verbatim_quote="A lapse in required insurance coverage constitutes a material breach of this Agreement.",
+                        confidence=1.0,
+                        verified=True
+                    ),
+                    draft_letter=draft_ins_instruction,
                     status="ready_for_dispatch"
                 ))
 
