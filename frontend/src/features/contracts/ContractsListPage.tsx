@@ -21,7 +21,7 @@ export const ContractsListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRisk, setSelectedRisk] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<'title' | 'risk' | 'renewalDate' | 'exposure'>('risk')
+  const [sortBy, setSortBy] = useState<'newest' | 'title' | 'risk' | 'renewalDate' | 'exposure'>('newest')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
 
   const loadContracts = async () => {
@@ -58,6 +58,14 @@ export const ContractsListPage: React.FC = () => {
   })
 
   const sortedContracts = [...filteredContracts].sort((a, b) => {
+    if (sortBy === 'newest') {
+      // Prioritize recently uploaded contracts (id starting with cnt- or not in canonical 8)
+      const aIsUpload = !['cnt-A1','cnt-A2','cnt-A3','cnt-B1','cnt-B2','cnt-C1','cnt-D1','cnt-STD'].includes(a.id)
+      const bIsUpload = !['cnt-A1','cnt-A2','cnt-A3','cnt-B1','cnt-B2','cnt-C1','cnt-D1','cnt-STD'].includes(b.id)
+      if (aIsUpload && !bIsUpload) return -1
+      if (!aIsUpload && bIsUpload) return 1
+      return 0
+    }
     if (sortBy === 'title') return a.title.localeCompare(b.title)
     if (sortBy === 'renewalDate') return new Date(a.renewalDate).getTime() - new Date(b.renewalDate).getTime()
     if (sortBy === 'exposure') return b.financialExposureINR - a.financialExposureINR
@@ -109,6 +117,7 @@ export const ContractsListPage: React.FC = () => {
             onChange={(e) => setSortBy(e.target.value as any)}
             className="bg-[#10263B] border border-[#1D344B] text-xs text-[#94A3B8] rounded-lg px-2.5 py-2 focus:outline-none focus:border-teal-400"
           >
+            <option value="newest">Sort by Recently Uploaded</option>
             <option value="risk">Sort by Risk Severity</option>
             <option value="renewalDate">Sort by Renewal Date</option>
             <option value="exposure">Sort by Financial Exposure</option>

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { UploadCloud, FileCheck, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
@@ -8,7 +9,7 @@ import { contractsService } from '../../services/contractsService'
 interface ContractUploadModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (contractId?: string) => void
 }
 
 export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
@@ -16,6 +17,7 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const navigate = useNavigate()
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
   const [counterparty, setCounterparty] = useState('')
@@ -69,7 +71,7 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
 
       setTimeout(async () => {
         try {
-          await contractsService.addContract({
+          const created = await contractsService.addContract({
             title: title || file?.name || 'New Enterprise Contract',
             counterparty: counterparty || 'Vendor Systems Ltd.',
             contractType,
@@ -81,8 +83,9 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
           setTimeout(() => {
             resetForm()
             onClose()
-            onSuccess?.()
-          }, 1200)
+            onSuccess?.(created.id)
+            navigate('/contracts')
+          }, 1000)
         } catch {
           setError('Failed to index contract.')
           setUploadStatus('idle')
@@ -188,7 +191,6 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
               onChange={(e) => setCounterparty(e.target.value)}
               placeholder="e.g. Acme Cloud Corp."
               className="w-full bg-[#10263B] border border-[#1D344B] rounded-lg px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-teal-400"
-              required
             />
           </div>
         </div>
