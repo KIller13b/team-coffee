@@ -21,11 +21,37 @@ let reportsState = [...MOCK_REPORTS]
 export const contractsService = {
   // Contracts
   async getContracts(): Promise<Contract[]> {
-    const res = await apiRequest<Contract[]>('/contracts', {}, () => contractsState)
-    return res.data
+    let localUploads: Contract[] = []
+    try {
+      localUploads = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+    } catch {}
+
+    try {
+      const res = await apiRequest<Contract[]>('/contracts', {}, () => contractsState)
+      const backendData = Array.isArray(res.data) ? res.data : []
+      const seenIds = new Set(backendData.map((c) => c.id))
+      const merged = [
+        ...localUploads.filter((c) => !seenIds.has(c.id)),
+        ...backendData,
+      ]
+      contractsState = merged
+      return merged
+    } catch {
+      const merged = [...localUploads, ...contractsState]
+      return merged
+    }
   },
 
   async getContractById(id: string): Promise<Contract | null> {
+    const existing = contractsState.find((c) => c.id === id)
+    if (existing) return existing
+
+    try {
+      const localUploads: Contract[] = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+      const match = localUploads.find((c) => c.id === id)
+      if (match) return match
+    } catch {}
+
     const res = await apiRequest<Contract | null>(`/contracts/${id}`, {}, () => {
       return contractsState.find((c) => c.id === id) || null
     })
@@ -39,20 +65,20 @@ export const contractsService = {
       counterparty: newContract.counterparty || 'External Entity Ltd.',
       contractType: newContract.contractType || 'Master Services Agreement (MSA)',
       status: 'under_review',
-      analysisStatus: 'processing',
+      analysisStatus: 'completed',
       riskLevel: newContract.riskLevel || 'medium',
       startDate: newContract.startDate || '2026-11-01',
       endDate: newContract.endDate || '2027-10-31',
       renewalDate: newContract.renewalDate || '2027-09-30',
       durationMonths: 12,
-      jurisdiction: newContract.jurisdiction || 'Bangalore, India',
+      jurisdiction: newContract.jurisdiction || 'Austin, TX',
       totalValueINR: newContract.totalValueINR || 12000000,
       financialExposureINR: 1500000,
       autoRenewalConditions: '30 days prior written notice required to prevent automated 12-month rollover.',
       paymentSchedule: 'Net 30 days invoice settlement.',
-      confidenceScore: 0.91,
-      summary: newContract.summary || 'Uploaded document queued for Thor parsing and Loki risk analysis.',
-      tags: ['Uploaded Document', 'Thor Queued', 'Pending Verification'],
+      confidenceScore: 0.94,
+      summary: newContract.summary || 'Uploaded document parsed by Thor and indexed in the Odin War Room.',
+      tags: ['Uploaded Document', 'Thor Verified', 'Active Analysis'],
       clauses: [
         {
           id: `cls-${Date.now()}-1`,
@@ -60,7 +86,7 @@ export const contractsService = {
           field: 'Uploaded Document Notice Term',
           extractedValue: '30 Days Prior Notice Required',
           clauseCitation: 'Section 4.1 (Term)',
-          confidenceScore: 0.89,
+          confidenceScore: 0.94,
           extractedBy: 'thor',
           category: 'renewal',
           verbatimText: 'Either party may terminate by delivering 30 days prior written notice before anniversary.',
@@ -73,7 +99,7 @@ export const contractsService = {
           contractId: `cnt-${Date.now().toString(36)}`,
           title: 'Complete Thor Clause Verification Audit',
           description: 'Review OCR clause segmentation and verify indemnification thresholds.',
-          dueDate: '2026-11-15',
+          dueDate: '2027-04-15',
           status: 'upcoming',
           severity: 'medium',
           financialExposureINR: 1500000,
@@ -83,7 +109,32 @@ export const contractsService = {
       ],
     }
 
-    contractsState = [contract, ...contractsState]
+    // 1. Persist to localStorage immediately
+    try {
+      const existing: Contract[] = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+      const updated = [contract, ...existing.filter((c) => c.id !== contract.id)]
+      localStorage.setItem('odin_uploaded_contracts', JSON.stringify(updated))
+    } catch {}
+
+    // 2. Prepend to in-memory state
+    contractsState = [contract, ...contractsState.filter((c) => c.id !== contract.id)]
+
+    // 3. Post to backend API
+    try {
+      await apiRequest<Contract>('/contracts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contract),
+      })
+    } catch (e) {
+      console.warn('Backend POST /contracts skipped/failed, saved locally:', e)
+    }
+
+    // 4. Dispatch event to all listening components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('odin:contract-uploaded', { detail: contract }))
+    }
+
     return contract
   },
 

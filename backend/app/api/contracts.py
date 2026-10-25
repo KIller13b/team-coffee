@@ -21,5 +21,5 @@ def get_contract(contract_id: str):
 
 @router.post("", response_model=Contract, status_code=201)
 def create_contract(new_contract: Contract):
-    contracts_db.append(new_contract)
+    contracts_db.insert(0, new_contract)
     return new_contract

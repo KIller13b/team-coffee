@@ -29,8 +29,9 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
     setError(null)
     if (!selectedFile) return
 
-    if (!selectedFile.name.endsWith('.pdf')) {
-      setError('Only PDF documents are supported for semantic clause extraction.')
+    const fileName = selectedFile.name.toLowerCase()
+    if (!fileName.endsWith('.pdf') && !fileName.endsWith('.txt')) {
+      setError('Please upload a PDF (.pdf) or text (.txt) contract document.')
       return
     }
 
@@ -41,7 +42,7 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
 
     setFile(selectedFile)
     if (!title) {
-      setTitle(selectedFile.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' '))
+      setTitle(selectedFile.name.replace(/\.(pdf|txt)$/i, '').replace(/[-_]/g, ' '))
     }
   }
 
@@ -124,7 +125,7 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
             type="file"
             ref={fileInputRef}
             onChange={(e) => handleFileChange(e.target.files?.[0])}
-            accept=".pdf"
+            accept=".pdf,.txt"
             className="hidden"
           />
 
@@ -136,7 +137,7 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
                   {file.name}
                 </p>
                 <p className="text-xs text-[#94A3B8]">
-                  {(file.size / (1024 * 1024)).toFixed(2)} MB • PDF Document Ready
+                  {(file.size / (1024 * 1024)).toFixed(2)} MB • Ready for Analysis
                 </p>
               </div>
             </div>
@@ -144,7 +145,7 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
             <div className="flex flex-col items-center">
               <UploadCloud className="w-10 h-10 text-teal-400 mb-2" />
               <p className="text-sm font-medium text-[#F1F5F9]">
-                Drop PDF contract here, or{' '}
+                Drop PDF or TXT contract here, or{' '}
                 <span className="text-teal-400 underline">browse</span>
               </p>
               <p className="text-xs text-[#94A3B8] mt-1">

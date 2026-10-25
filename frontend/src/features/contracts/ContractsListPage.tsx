@@ -36,6 +36,12 @@ export const ContractsListPage: React.FC = () => {
 
   useEffect(() => {
     loadContracts()
+
+    const handleUpload = () => {
+      loadContracts()
+    }
+    window.addEventListener('odin:contract-uploaded', handleUpload)
+    return () => window.removeEventListener('odin:contract-uploaded', handleUpload)
   }, [])
 
   // Filter & Sort
