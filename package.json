@@ -1,0 +1,14 @@
+{
+  "name": "ragnarok",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Odin — Multi-Agent Contract Intelligence System for Risk Foresight",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "dev:backend": "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload"
+  }
+}
