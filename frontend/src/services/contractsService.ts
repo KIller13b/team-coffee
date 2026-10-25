@@ -50,8 +50,14 @@ export const contractsService = {
     try {
       const res = await apiRequest<Contract | null>(`/contracts/${id}`)
       if (res.data) {
-        contractsState = [res.data, ...contractsState.filter((c) => c.id !== id)]
-        return res.data
+        const item = res.data
+        contractsState = [item, ...contractsState.filter((c) => c.id !== id && c.id !== item.id)]
+        try {
+          const localUploads: Contract[] = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+          const filtered = localUploads.filter((c) => c.id !== id && c.id !== item.id)
+          localStorage.setItem('odin_uploaded_contracts', JSON.stringify([item, ...filtered]))
+        } catch {}
+        return item
       }
     } catch {}
 

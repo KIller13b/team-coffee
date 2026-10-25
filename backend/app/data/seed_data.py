@@ -9,35 +9,116 @@ Ground-truth Quillhub seed data directly extracted from canonical bundle files:
 SEED_CONTRACTS = [
     {
         "id": "cnt-A1",
-        "title": "Cloud Service Agreement Cover Page",
+        "title": "Cloud Service Agreement Cover Page (QH-STRATO-2026-001)",
         "counterparty": "StratoNode Inc.",
         "contractType": "Master Cloud Infrastructure Agreement",
         "status": "active",
-        "value": "$180,000 / yr",
-        "effectiveDate": "2026-06-01",
-        "expiryDate": "2028-05-31",
+        "value": "$96,000 / yr ($8,000 / mo)",
+        "effectiveDate": "2026-08-01",
+        "expiryDate": "2028-07-31",
         "autoRenew": True,
-        "renewalNoticeDays": 60,
-        "governingLaw": "State of Delaware",
-        "clausesCount": 8,
+        "renewalNoticeDays": 90,
+        "governingLaw": "State of Oregon (Multnomah County)",
+        "jurisdiction": "State of Oregon; Federal & State Courts in Multnomah County, Oregon",
+        "clausesCount": 12,
         "criticalObligationsCount": 2,
-        "verifiedCitationsCount": 3,
-        "description": "Primary upstream cloud compute, storage, and networking provider hosting Quillhub's Route Optimizer platform.",
+        "verifiedCitationsCount": 12,
+        "description": "StratoNode CloudCore infrastructure agreement for Quillhub Route Optimizer. Invoiced monthly at $8,000 with 90-day written non-renewal notice requirement.",
         "clauses": [
             {
+                "id": "cls-a1-service",
+                "section": "Section A",
+                "title": "Cloud Service Description",
+                "text": "The Cloud Service is StratoNode CloudCore, a managed cloud infrastructure platform providing compute, storage, network, and monitoring services. Quillhub will use StratoNode CloudCore to host and operate its Route Optimizer application.",
+                "type": "scope",
+                "isFlagged": False
+            },
+            {
                 "id": "cls-a1-term",
-                "section": "Section B (Subscription Period & Renewal)",
-                "title": "Term and Automatic Renewal",
-                "text": "Agreement shall commence on the Effective Date and continue for a period of twenty-four (24) months, automatically renewing for successive twelve (12) month periods unless either party provides written notice of non-renewal at least sixty (60) days prior to the expiration of the current Term.",
+                "section": "Section B",
+                "title": "Subscription Period and Renewal",
+                "text": "Initial Subscription Period: 24 months (ending July 31, 2028). Renewal Period: successive 12-month periods. Non-Renewal Notice Period: 90 days before the end of the then-current Subscription Period. The Agreement will automatically renew for successive Renewal Periods of 12 months each, unless either party delivers written notice of non-renewal to the other party's Notice Address at least 90 days before the end of the then-current Subscription Period.",
                 "type": "obligation",
                 "isFlagged": True
             },
             {
-                "id": "cls-a1-priority",
-                "section": "Special Terms §2",
-                "title": "SLA Governance Hierarchy",
-                "text": "Provider uptime commitments and Service Credits are governed exclusively by the CloudCore Service Level Agreement (Attachment A2). In the event of any conflict between this Cover Page, the Standard Terms, and Attachment A2, Attachment A2 shall control with respect to service availability.",
+                "id": "cls-a1-fees",
+                "section": "Section C",
+                "title": "Fees and Payment Terms",
+                "text": "Monthly Fee: $8,000.00 (Eight Thousand U.S. Dollars). Payment Process: Invoicing. StratoNode will issue invoices on the first business day of each calendar month for that month's Fee. Payment Period: 30 days from invoice date. Overdue amounts accrue interest at 1.5% per month.",
+                "type": "payment",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-support",
+                "section": "Section D",
+                "title": "Technical Support",
+                "text": "Support Tier: Business Support. Support Hours: Monday through Friday, 8:00 AM – 6:00 PM Pacific Time. Response Targets: Severity 1 (service down): 1 hour; Severity 2: 4 hours; Severity 3: 1 business day; Severity 4: 2 business days. Response targets are commercially reasonable objectives, not contractual commitments.",
+                "type": "sla",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-sla-hierarchy",
+                "section": "Section E",
+                "title": "Service Level Agreement Hierarchy",
+                "text": "The Cloud Service is subject to the Service Level Agreement attached hereto as a separate document titled \"StratoNode CloudCore — Service Level Agreement\" (document QH-STRATO-2026-SLA), which is incorporated into this Agreement by reference. In the event of a conflict between this Cover Page and the SLA, the SLA controls with respect to uptime commitments and service credits.",
                 "type": "compliance",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-security",
+                "section": "Section F",
+                "title": "Data and Security",
+                "text": "Data Location: United States (us-west-2 and us-east-1 regions). Encryption at Rest: AES-256. Encryption in Transit: TLS 1.2 or higher. Backup Frequency: Daily automated snapshots, retained for 30 days. Security Incident Notification: In accordance with Section 3.3 of the Standard Terms, StratoNode will notify Quillhub within 72 hours of becoming aware of a Security Incident.",
+                "type": "compliance",
+                "isFlagged": True
+            },
+            {
+                "id": "cls-a1-liability",
+                "section": "Section G",
+                "title": "Liability & General Cap",
+                "text": "General Cap Amount: The total Fees paid or payable by Customer in the twelve (12) months immediately preceding the claim. Unlimited Claims: Breach of Section 10 (Confidentiality); Customer's breach of Section 2.1 (Restrictions).",
+                "type": "liability",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-gov-law",
+                "section": "Section H",
+                "title": "Governing Law & Chosen Courts",
+                "text": "Governing Law: State of Oregon. Chosen Courts: Federal and state courts located in Multnomah County, Oregon.",
+                "type": "legal",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-disruption",
+                "section": "Section I.1",
+                "title": "Service Disruption Notification",
+                "text": "If StratoNode experiences an unplanned service disruption affecting the Cloud Service, StratoNode will use commercially reasonable efforts to notify Quillhub's Operations contact (ops@quillhub.io) within four (4) hours of becoming aware of the disruption.",
+                "type": "obligation",
+                "isFlagged": True
+            },
+            {
+                "id": "cls-a1-migration",
+                "section": "Section I.2",
+                "title": "Migration Assistance",
+                "text": "Upon expiration or termination of this Agreement, StratoNode will provide reasonable migration assistance to Quillhub for a period of up to 90 days following the effective date of termination, at StratoNode's then-current professional services rates.",
+                "type": "obligation",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-subprocessors",
+                "section": "Section I.3",
+                "title": "Subprocessor Changes",
+                "text": "StratoNode may use subprocessors to deliver the Cloud Service. StratoNode will maintain a list of subprocessors and notify Quillhub of any changes at least 30 days in advance.",
+                "type": "compliance",
+                "isFlagged": False
+            },
+            {
+                "id": "cls-a1-signatures",
+                "section": "Signatures",
+                "title": "Execution and Signatures",
+                "text": "FOR STRATONODE INC.: Jordan Hale, VP Sales, Date: July 15, 2026. FOR QUILLHUB INC.: Marcus Ellison, VP of Legal & Compliance, Date: July 18, 2026.",
+                "type": "legal",
                 "isFlagged": False
             }
         ]
