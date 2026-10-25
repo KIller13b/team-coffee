@@ -11,8 +11,8 @@ from app.agents import ContractWarRoomWorkflow, load_dataset_bundle
 
 router = APIRouter(prefix="/contracts", tags=["Contracts"])
 
-# Clean repository by default - contracts must be uploaded by user
-contracts_db: List[Contract] = []
+from app.services.war_room_state import war_room_state
+contracts_db: List[Contract] = list(war_room_state.contracts)
 
 canonical_map = {c["id"]: c for c in SEED_CONTRACTS}
 # Also map by common keys like "A1", "A2", etc.
@@ -23,14 +23,17 @@ for c in SEED_CONTRACTS:
 
 from app.data.canonical_metadata import CANONICAL_METADATA, CANONICAL_OBLIGATIONS
 
+from app.models.schemas import Contract, ContractClause, Obligation, normalize_contract_id, to_prefixed_contract_id
+
 @router.get("", response_model=List[Contract])
 def get_contracts():
     return contracts_db
 
 @router.get("/{contract_id}", response_model=Contract)
 def get_contract(contract_id: str):
+    target_norm = normalize_contract_id(contract_id)
     for c in contracts_db:
-        if c.id == contract_id:
+        if normalize_contract_id(c.id) == target_norm or c.id == contract_id:
             return c
     raise HTTPException(status_code=404, detail="Contract not found")
 
@@ -284,9 +287,10 @@ def clear_all_contracts():
 @router.delete("/{contract_id}", status_code=200)
 def delete_contract(contract_id: str):
     global contracts_db
-    contracts_db = [c for c in contracts_db if c.id != contract_id]
+    target_norm = normalize_contract_id(contract_id)
+    contracts_db = [c for c in contracts_db if normalize_contract_id(c.id) != target_norm and c.id != contract_id]
     from app.services.war_room_state import war_room_state
-    war_room_state.contracts = [c for c in war_room_state.contracts if c.id != contract_id]
+    war_room_state.contracts = [c for c in war_room_state.contracts if normalize_contract_id(c.id) != target_norm and c.id != contract_id]
     return {"message": f"Contract {contract_id} deleted successfully"}
 
 @router.post("/seed", response_model=List[Contract], status_code=200)

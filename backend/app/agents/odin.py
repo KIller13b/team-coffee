@@ -100,7 +100,7 @@ class OdinAgent(BaseAgent):
                         verified=True
                     ),
                     draft_letter=draft_letter,
-                    status="ready_for_dispatch"
+                    status="drafted"
                 ))
 
             elif "stratonode" in title_l or "sla outage credit" in title_l or "credit forfeiture" in title_l:
@@ -152,7 +152,7 @@ class OdinAgent(BaseAgent):
                         verified=True
                     ),
                     draft_letter=draft_letter,
-                    status="ready_for_dispatch"
+                    status="drafted"
                 ))
 
             elif "deemed acceptance" in title_l or "milestone m3" in title_l:
@@ -195,8 +195,8 @@ class OdinAgent(BaseAgent):
                         confidence=1.0,
                         verified=True
                     ),
-                    draft_letter=draft_memo,
-                    status="ready_for_dispatch"
+                    draft_letter=draft_letter if 'draft_letter' in locals() else draft_memo if 'draft_memo' in locals() else draft_amendment if 'draft_amendment' in locals() else draft_reassurance if 'draft_reassurance' in locals() else draft_ins_instruction,
+                    status="drafted"
                 ))
 
         # Action 2: From Tyr Rulings (NO branch / Arbitrated disputes & compliance mandates)
@@ -233,7 +233,7 @@ class OdinAgent(BaseAgent):
                         verified=True
                     ),
                     draft_letter=draft_amendment,
-                    status="ready_for_dispatch"
+                    status="drafted"
                 ))
 
             elif ruling.verdict == "dismissed_as_false_alarm":
@@ -270,7 +270,7 @@ class OdinAgent(BaseAgent):
                         verified=True
                     ),
                     draft_letter=draft_reassurance,
-                    status="ready_for_dispatch"
+                    status="drafted"
                 ))
 
             elif ruling.verdict == "formal_cure_required":
@@ -313,7 +313,7 @@ class OdinAgent(BaseAgent):
                         verified=True
                     ),
                     draft_letter=draft_ins_instruction,
-                    status="ready_for_dispatch"
+                    status="drafted"
                 ))
 
         # Executive Summary

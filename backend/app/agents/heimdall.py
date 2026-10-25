@@ -208,16 +208,47 @@ class HeimdallAgent(BaseAgent):
             )
             no_branch.append(verification)
 
+        # Collect all correlated event IDs
+        all_correlated_ids = set()
+        for v in yes_branch + no_branch:
+            for eid in v.correlated_event_ids:
+                all_correlated_ids.add(eid.lower())
+
+        # Detect unmatched critical real-world events
+        unmatched_critical: List[Dict[str, Any]] = []
+        for e in real_world_events:
+            eid = e.get("event_id", "").lower()
+            if eid and eid not in all_correlated_ids:
+                body_l = e.get("body", "").lower()
+                subj_l = e.get("subject", "").lower()
+                is_crit = (
+                    e.get("status") == "overdue"
+                    or "outage" in body_l
+                    or "downtime" in body_l
+                    or "service disruption" in subj_l
+                    or "breach" in body_l
+                    or "urgent" in subj_l
+                )
+                if is_crit:
+                    unmatched_critical.append({
+                        "event_id": e.get("event_id"),
+                        "timestamp": e.get("timestamp"),
+                        "summary": e.get("subject") or e.get("body", "")[:120],
+                        "urgency": "high"
+                    })
+
         output = HeimdallOutput(
             verified_events_count=len(real_world_events),
             total_claims_evaluated=len(loki_output.risks_and_claims),
             yes_branch_claims=yes_branch,
             no_branch_claims=no_branch,
-            monitoring_summary=f"Heimdall audited {len(loki_output.risks_and_claims)} claims: {len(yes_branch)} verified as active (YES -> Odin), {len(no_branch)} unverified/disputed (NO -> Tyr)."
+            unmatched_critical_events=unmatched_critical,
+            monitoring_summary=f"Heimdall audited {len(loki_output.risks_and_claims)} claims: {len(yes_branch)} verified as active (YES -> Odin), {len(no_branch)} unverified/disputed (NO -> Tyr). Unmatched critical events: {len(unmatched_critical)}."
         )
 
         self.log(
-            f"Heimdall audit finished: {len(yes_branch)} YES (active) -> Odin, {len(no_branch)} NO (disputed) -> Tyr",
+            f"Heimdall audit finished: {len(yes_branch)} YES (active) -> Odin, {len(no_branch)} NO (disputed) -> Tyr, {len(unmatched_critical)} unmatched critical events detected",
             "sentinel_audit_complete"
         )
         return output
+

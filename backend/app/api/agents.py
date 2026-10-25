@@ -227,7 +227,7 @@ def war_room_chat(request: ChatRequest):
                 "agentId": request.agent_id,
                 "response": answer,
                 "model": llm_service.model,
-                "source": "groq_llm"
+                "source": f"{llm_service.provider}_llm"
             }
 
     # Fallback rule-based response

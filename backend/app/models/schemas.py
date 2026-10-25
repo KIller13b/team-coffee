@@ -6,6 +6,28 @@ ContractStatus = Literal['active', 'under_review', 'expiring_soon', 'terminated'
 AnalysisStatus = Literal['completed', 'processing', 'pending_arbitration', 'flagged']
 AgentStatus = Literal['idle', 'running', 'completed', 'waiting', 'failed']
 
+
+def normalize_contract_id(cid: str) -> str:
+    """
+    Normalizes contract ID across endpoints, database records, and agent messages.
+    Converts 'cnt-A1', 'a1', 'cnt-a1', 'A1.txt' to canonical uppercase base key 'A1'.
+    """
+    if not cid:
+        return ""
+    clean = cid.strip()
+    if clean.lower().endswith(".txt") or clean.lower().endswith(".pdf"):
+        clean = clean.rsplit(".", 1)[0]
+    if clean.lower().startswith("cnt-"):
+        clean = clean[4:]
+    return clean.upper()
+
+
+def to_prefixed_contract_id(cid: str) -> str:
+    """Returns canonical prefixed contract ID (e.g. 'cnt-A1')."""
+    norm = normalize_contract_id(cid)
+    return f"cnt-{norm}" if norm else ""
+
+
 class ContractClause(BaseModel):
     id: str
     contractId: str = ""

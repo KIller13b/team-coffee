@@ -319,9 +319,16 @@ export const ContractDetailsPage: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <span className="text-[11px] text-teal-400 group-hover:underline">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedClause(clause);
+                            }}
+                            className="text-[11px] text-teal-400 hover:text-teal-300 hover:underline cursor-pointer py-1 px-2.5 rounded bg-teal-500/10 border border-teal-500/30 font-medium transition-colors"
+                          >
                             View Citation →
-                          </span>
+                          </button>
                         </td>
                       </tr>
                     ))}

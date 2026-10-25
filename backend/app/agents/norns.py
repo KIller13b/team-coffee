@@ -5,9 +5,11 @@ Takes Thor's extracted clauses and projects commitments, renewal dates, cure per
 and worst-case financial liabilities across the advancing simulated clock checkpoints.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import List, Dict, Any, Optional
+import re
 from app.agents.base import BaseAgent, ThorOutput, NornsOutput, NornsTimelineItem
+from app.services.business_calendar import calendar
 
 
 class NornsAgent(BaseAgent):
@@ -29,8 +31,9 @@ class NornsAgent(BaseAgent):
     ) -> NornsOutput:
         """
         Projects timelines, calculating which deadlines have passed, are imminent, or are worst-case risks.
+        Consumes Thor's extracted clauses and obligations directly.
         """
-        self.log(f"Evaluating temporal commitments as of clock: {current_clock}", "timeline_init")
+        self.log(f"Evaluating temporal commitments for {thor_output.contract_id} as of clock: {current_clock}", "timeline_init")
         
         timeline_items: List[NornsTimelineItem] = []
         upcoming_30d: List[NornsTimelineItem] = []
@@ -42,14 +45,15 @@ class NornsAgent(BaseAgent):
         except ValueError:
             curr_date = datetime(2027, 1, 15)
 
-        cid = thor_output.contract_id.upper()
+        cid = thor_output.contract_id.strip()
+        cid_upper = cid.upper()
 
-        # Contract-specific ground truth temporal milestones
-        if any(x in cid for x in ["A1", "A2", "A3", "STRATO"]):
-            # StratoNode CloudCore Agreement (ends 2028-07-31, 60-day notice under A3 §3 -> 2028-06-01)
-            # March Outage SLA credit cutoff (A3 §1: 15 days after March 31 -> 2027-04-15)
-            # May Outage SLA credit cutoff (A3 §1: 15 days after May 31 -> 2027-06-15)
-            milestones = [
+        milestones: List[Dict[str, Any]] = []
+
+        # 1. Canonical contract milestones mapped strictly to their primary document
+        # Prevents duplicate events across A1/A2/A3 or B1/B2
+        if cid_upper in ["A3", "QH-STRATO-2026-AMD1"]:
+            milestones.extend([
                 {
                     "id": f"time-{cid}-sla-claim-mar",
                     "date": "2027-04-15",
@@ -57,7 +61,7 @@ class NornsAgent(BaseAgent):
                     "type": "deadline",
                     "description": "Deadline to submit written SLA credit claim for March 3 outage (190 min) under Amendment No. 1 §1.",
                     "clause_citation": "Amendment No. 1 Section 1 modifying SLA §3.2",
-                    "penalty_exposure_inr": 199200.0, # $2,400 (30% of $8k fee)
+                    "penalty_exposure_inr": 199200.0,
                     "is_worst_case": True,
                 },
                 {
@@ -77,12 +81,24 @@ class NornsAgent(BaseAgent):
                     "type": "renewal_window",
                     "description": "60 days prior to July 31, 2028 expiration. Missing this automatically commits Quillhub to a 12-month extension ($96,000).",
                     "clause_citation": "Amendment No. 1 Section 3 amending Cover Page Section B",
-                    "penalty_exposure_inr": 7968000.0, # $96,000
+                    "penalty_exposure_inr": 7968000.0,
                     "is_worst_case": True,
                 }
-            ]
-        elif any(x in cid for x in ["B1", "B2", "HARBOR"]):
-            milestones = [
+            ])
+        elif cid_upper in ["A1", "QH-STRATO-2026-001"]:
+            # A1 is Cover Page (Initial 90-day non-renewal notice superseded by A3)
+            milestones.append({
+                "id": f"time-{cid}-original-renewal",
+                "date": "2028-05-02",
+                "title": "StratoNode 90-Day Initial Non-Renewal Notice Benchmark (Superseded by A3)",
+                "type": "renewal_window",
+                "description": "Original 90-day notice under Section B prior to July 31, 2028 term expiration.",
+                "clause_citation": "Section B (Subscription Period & Renewal)",
+                "penalty_exposure_inr": 7968000.0,
+                "is_worst_case": False,
+            })
+        elif cid_upper in ["B1", "QH-HARBOR-2026-001"]:
+            milestones.extend([
                 {
                     "id": f"time-{cid}-rca-mar",
                     "date": "2027-03-10",
@@ -100,7 +116,7 @@ class NornsAgent(BaseAgent):
                     "type": "cure_period",
                     "description": "Policy lapse constitutes immediate material breach without cure under B1 §7.2, giving Harbor unilateral termination rights (§8.2).",
                     "clause_citation": "Section H §7.1 & §7.2 (Insurance Requirement)",
-                    "penalty_exposure_inr": 39840000.0, # $480,000 full contract value
+                    "penalty_exposure_inr": 39840000.0,
                     "is_worst_case": True,
                 },
                 {
@@ -113,17 +129,20 @@ class NornsAgent(BaseAgent):
                     "penalty_exposure_inr": 3320000.0,
                     "is_worst_case": False,
                 }
-            ]
-        elif any(x in cid for x in ["D1", "PIXEL"]):
-            milestones = [
+            ])
+        elif cid_upper in ["D1", "QH-PIXEL-2027-001"]:
+            # Uses BusinessCalendar for exact 10-business-day calculation from Feb 28, 2027 (Mar 12, 2027)
+            feb28 = date(2027, 2, 28)
+            m3_cutoff = calendar.add_business_days(feb28, 10).strftime("%Y-%m-%d")
+            milestones.extend([
                 {
                     "id": f"time-{cid}-m3-review",
-                    "date": "2027-03-12",
+                    "date": m3_cutoff,
                     "title": "Milestone M3 10-Business-Day Deemed Acceptance Cutoff",
                     "type": "deadline",
-                    "description": "Review period for M3 deliverable submitted Feb 28. If no Rejection Notice delivered by March 12, milestone is deemed accepted.",
+                    "description": "Review period for M3 deliverable submitted Feb 28. If no Rejection Notice delivered by cutoff, milestone is deemed accepted.",
                     "clause_citation": "Section 4.2 & Section 4.3 (Deemed Acceptance)",
-                    "penalty_exposure_inr": 1660000.0, # $20,000
+                    "penalty_exposure_inr": 1660000.0,
                     "is_worst_case": True,
                 },
                 {
@@ -133,12 +152,12 @@ class NornsAgent(BaseAgent):
                     "type": "deadline",
                     "description": "Review period for M4 integration package submitted April 20. Deemed accepted on May 4 if not rejected.",
                     "clause_citation": "Section 4.2 & Section 4.3",
-                    "penalty_exposure_inr": 996000.0, # $12,000
+                    "penalty_exposure_inr": 996000.0,
                     "is_worst_case": False,
                 }
-            ]
-        elif any(x in cid for x in ["C1", "VANTAGE"]):
-            milestones = [
+            ])
+        elif cid_upper in ["C1", "QH-VANTAGE-2027-001"]:
+            milestones.extend([
                 {
                     "id": f"time-{cid}-go-live",
                     "date": "2027-05-15",
@@ -159,20 +178,96 @@ class NornsAgent(BaseAgent):
                     "penalty_exposure_inr": 996000.0,
                     "is_worst_case": False,
                 }
-            ]
+            ])
+        elif cid_upper in ["STD", "QH-STD-TERMS-2026"]:
+            # Standard terms general governance
+            milestones.append({
+                "id": f"time-{cid}-notice-compliance",
+                "date": "2027-12-31",
+                "title": "Annual Standard Terms Compliance & Address Audit",
+                "type": "milestone",
+                "description": "Annual audit of official notice addresses and insurance certificates.",
+                "clause_citation": "Section 12.4 (Notices)",
+                "penalty_exposure_inr": 500000.0,
+                "is_worst_case": False,
+            })
         else:
-            milestones = [
-                {
-                    "id": f"time-{cid}-renewal-window",
+            # 2. Dynamic Milestone Generation from Thor's extracted clauses for Novel Contracts
+            self.log(f"Generating dynamic temporal milestones from Thor's clauses for novel contract {cid}", "dynamic_timeline_generation")
+            for cl in thor_output.clauses:
+                # Renewal terms
+                if "renewal" in cl.field.lower() or cl.category == "term_and_renewal":
+                    notice_days = 30
+                    m_days = re.search(r"(\d+)\s+days?", cl.verbatim_text, re.IGNORECASE)
+                    if m_days:
+                        notice_days = int(m_days.group(1))
+                    proj_date = (curr_date + timedelta(days=max(365 - notice_days, 30))).strftime("%Y-%m-%d")
+                    milestones.append({
+                        "id": f"time-{cid}-renewal-{len(milestones)+1}",
+                        "date": proj_date,
+                        "title": f"Non-Renewal Notice Cutoff ({notice_days}-Day Notice)",
+                        "type": "renewal_window",
+                        "description": f"Mandatory written notice required {notice_days} days prior to term expiration.",
+                        "clause_citation": cl.clause_citation,
+                        "penalty_exposure_inr": 2500000.0,
+                        "is_worst_case": True,
+                    })
+
+                # SLA & outage credit claims
+                elif "sla" in cl.field.lower() or "credit" in cl.field.lower():
+                    proj_date = (curr_date + timedelta(days=15)).strftime("%Y-%m-%d")
+                    milestones.append({
+                        "id": f"time-{cid}-sla-{len(milestones)+1}",
+                        "date": proj_date,
+                        "title": f"SLA Credit Claim Submission Deadline",
+                        "type": "deadline",
+                        "description": f"Cutoff window to submit written credit claim following service disruption.",
+                        "clause_citation": cl.clause_citation,
+                        "penalty_exposure_inr": 200000.0,
+                        "is_worst_case": True,
+                    })
+
+                # Review & acceptance
+                elif "deemed" in cl.field.lower() or "review" in cl.field.lower():
+                    cutoff = calendar.add_business_days(curr_date.date(), 10).strftime("%Y-%m-%d")
+                    milestones.append({
+                        "id": f"time-{cid}-review-{len(milestones)+1}",
+                        "date": cutoff,
+                        "title": "Deliverable Review & Deemed Acceptance Cutoff",
+                        "type": "deadline",
+                        "description": "Deadline to issue formal written rejection or deliverable is legally deemed accepted.",
+                        "clause_citation": cl.clause_citation,
+                        "penalty_exposure_inr": 1500000.0,
+                        "is_worst_case": True,
+                    })
+
+                # Payment & invoicing
+                elif "payment" in cl.field.lower() or cl.category == "payment":
+                    proj_date = (curr_date + timedelta(days=30)).strftime("%Y-%m-%d")
+                    milestones.append({
+                        "id": f"time-{cid}-payment-{len(milestones)+1}",
+                        "date": proj_date,
+                        "title": "Invoice Payment Cutoff (Net 30)",
+                        "type": "payment",
+                        "description": "Mandatory invoice payment due date.",
+                        "clause_citation": cl.clause_citation,
+                        "penalty_exposure_inr": 500000.0,
+                        "is_worst_case": False,
+                    })
+
+            # If no clauses produced milestones, generate baseline agreement review
+            if not milestones:
+                milestones.append({
+                    "id": f"time-{cid}-baseline-review",
                     "date": (curr_date + timedelta(days=45)).strftime("%Y-%m-%d"),
-                    "title": "Standard Terms Non-Renewal Notice Deadline",
+                    "title": f"Contractual Review & Notice Window ({cid})",
                     "type": "renewal_window",
-                    "description": "Standard written non-renewal notice cutoff window.",
-                    "clause_citation": "Section 5.1 (Renewal)",
-                    "penalty_exposure_inr": 2000000.0,
+                    "description": "Standard review period for agreement covenants and renewal notice.",
+                    "clause_citation": "Standard Agreement Terms",
+                    "penalty_exposure_inr": 1000000.0,
                     "is_worst_case": True,
-                }
-            ]
+                })
+
 
         # Process milestones against current simulated clock
         for m in milestones:

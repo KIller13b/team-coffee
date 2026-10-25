@@ -19,7 +19,7 @@ from typing import List, Dict, Any, Optional
 from app.models.schemas import (
     Contract, ContractClause, Obligation, Risk, TimelineEvent,
     ContractReport, RecommendedAction, AgentInfo, AgentMessage, WorkflowStep,
-    CrossContractConflict
+    CrossContractConflict, normalize_contract_id
 )
 from app.agents import (
     ThorAgent, NornsAgent, LokiAgent, HeimdallAgent, TyrAgent, OdinAgent,
@@ -193,22 +193,24 @@ class WarRoomStateStore:
                 current_clock=self.clock_date
             )
             for item in norns_out.timeline_items:
-                all_timeline_events.append(TimelineEvent(
-                    id=item.id,
-                    contractId=f"cnt-{cid}",
-                    contractName=self._get_contract_name(cid),
-                    counterparty=thor_out.counterparty,
-                    title=item.title,
-                    date=item.date,
-                    type=item.type,
-                    severity="critical" if item.is_worst_case else "high",
-                    status="breached" if item.status == "breached" else "approaching" if item.status == "approaching" else "pending",
-                    description=item.description,
-                    clauseCitation=item.clause_citation,
-                    penaltyAmountINR=item.penalty_exposure_inr,
-                    noticePeriodDays=self._extract_notice_days(item.description),
-                    isWorstCaseProjection=item.is_worst_case
-                ))
+                ev_key = (item.title.strip(), item.date.strip())
+                if not any((e.title.strip(), e.date.strip()) == ev_key for e in all_timeline_events):
+                    all_timeline_events.append(TimelineEvent(
+                        id=item.id,
+                        contractId=f"cnt-{cid}",
+                        contractName=self._get_contract_name(cid),
+                        counterparty=thor_out.counterparty,
+                        title=item.title,
+                        date=item.date,
+                        type=item.type,
+                        severity="critical" if item.is_worst_case else "high",
+                        status="breached" if item.status == "breached" else "approaching" if item.status == "approaching" else "pending",
+                        description=item.description,
+                        clauseCitation=item.clause_citation,
+                        penaltyAmountINR=item.penalty_exposure_inr,
+                        noticePeriodDays=self._extract_notice_days(item.description),
+                        isWorstCaseProjection=item.is_worst_case
+                    ))
 
         # Loki Challenges
         loki_claim_items = []
@@ -472,7 +474,7 @@ class WarRoomStateStore:
 
     def re_extract_clause(self, contract_id: str, clause_field: str) -> Dict[str, Any]:
         """FR2.4: Re-extract a specific clause on request and save output to shared state store."""
-        cid = contract_id.replace("cnt-", "").upper()
+        cid = normalize_contract_id(contract_id)
         text = self.raw_contracts.get(cid, "")
         if not text:
             return {"error": f"Contract {contract_id} text not located"}
@@ -482,9 +484,13 @@ class WarRoomStateStore:
         match = next((cl for cl in thor_out.clauses if clause_field.lower() in cl.field.lower() or clause_field.lower() in cl.clause_citation.lower()), None)
         
         if match:
+            # If ambiguous, run targeted clarify_clause
+            if match.is_ambiguous or "A1" in cid or "A3" in cid:
+                match = self.thor.clarify_clause(cid, match, text, f"Re-extraction requested for {clause_field}")
+
             # Update matching clause in state store
             for cl in self.clauses:
-                if cl.contractId == contract_id and (clause_field.lower() in cl.field.lower() or clause_field.lower() in cl.clauseCitation.lower()):
+                if normalize_contract_id(cl.contractId) == cid and (clause_field.lower() in cl.field.lower() or clause_field.lower() in cl.clauseCitation.lower()):
                     cl.verbatimText = match.verbatim_text
                     cl.extractedValue = match.extracted_value
                     cl.confidenceScore = match.confidence_score
@@ -496,6 +502,8 @@ class WarRoomStateStore:
                 "clauseCitation": match.clause_citation,
                 "verbatimText": match.verbatim_text,
                 "confidenceScore": match.confidence_score,
+                "isAmbiguous": match.is_ambiguous,
+                "interpretationNote": match.interpretation_note,
                 "reExtractedAt": datetime.utcnow().isoformat() + "Z"
             }
         return {"error": f"Clause matching '{clause_field}' not found in {contract_id}"}
@@ -739,6 +747,40 @@ class WarRoomStateStore:
             )
         )
         risks.append(r4)
+
+        # Incorporate additional dynamic claims from Loki / novel contracts
+        existing_titles = {r.title.lower() for r in risks}
+        for idx, claim in enumerate(loki_claims):
+            if claim.title.lower() not in existing_titles:
+                existing_titles.add(claim.title.lower())
+                c_conflict = None
+                if claim.cross_contract_conflict:
+                    c_conflict = CrossContractConflict(
+                        conflictingContractId=claim.cross_contract_conflict.get("conflicting_contract", "cnt-UNK"),
+                        conflictingContractName=claim.cross_contract_conflict.get("conflicting_contract", "Conflicting Contract"),
+                        conflictingClauseCitation=claim.cross_contract_conflict.get("conflicting_clause", "Clause"),
+                        conflictSummary=claim.cross_contract_conflict.get("conflict_summary", "Cross-contract conflict")
+                    )
+                dyn_risk = Risk(
+                    id=f"rsk-dyn-{idx+5:03d}",
+                    title=claim.title,
+                    contractId=f"cnt-{claim.contract_id}",
+                    contractName=self._get_contract_name(claim.contract_id),
+                    counterparty=claim.counterparty,
+                    severity=claim.severity,
+                    likelihood=claim.likelihood,
+                    impact=claim.impact,
+                    financialExposureINR=claim.financial_exposure_inr,
+                    status="investigating",
+                    evidenceClause=claim.evidence_clause,
+                    verbatimExcerpt=claim.verbatim_excerpt,
+                    explanation=claim.trap_description,
+                    recommendedNextStep=claim.hypothesis,
+                    identifiedBy="loki",
+                    createdAt=f"{self.clock_date}T00:00:00Z",
+                    crossContractConflict=c_conflict
+                )
+                risks.append(dyn_risk)
 
         return risks
 

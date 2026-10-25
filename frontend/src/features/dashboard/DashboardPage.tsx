@@ -75,8 +75,8 @@ export const DashboardPage: React.FC = () => {
               Active Arbitration Directive by Tyr
             </h2>
             <p className="text-[11px] text-[#94A3B8]">
-              Apex Cloud termination frozen to prevent ₹85L Vanguard ERP cross-default breach.
-              Bridge extension addendum recommended.
+              StratoNode SLA discrepancy quarantined by Tyr to protect Harbor Retail downstream warranties.
+              Bridge extension addendum and high-availability failover active.
             </p>
           </div>
         </div>
