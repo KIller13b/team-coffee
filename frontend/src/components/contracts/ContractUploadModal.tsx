@@ -88,13 +88,23 @@ export const ContractUploadModal: React.FC<ContractUploadModalProps> = ({
 
       setTimeout(async () => {
         try {
-          const created = await contractsService.addContract({
-            title: title || file?.name || 'New Enterprise Contract',
-            counterparty: counterparty || 'Vendor Systems Ltd.',
-            contractType,
-            riskLevel: 'medium',
-            summary: `Automated clause segmentation completed for ${title || 'uploaded document'}. Verified by Thor.`,
-          })
+          let created
+          if (file) {
+            created = await contractsService.uploadContractFile(file, {
+              title,
+              counterparty,
+              contractType,
+            })
+          } else {
+            created = await contractsService.addContract({
+              title: title || 'New Enterprise Contract',
+              counterparty: counterparty || 'Vendor Systems Ltd.',
+              contractType,
+              riskLevel: 'medium',
+              summary: `Automated clause segmentation completed for ${title || 'document'}. Verified by Thor.`,
+            })
+          }
+
           setUploadStatus('done')
           setStageMessage('Contract successfully indexed into Odin Multi-Agent mesh.')
           setTimeout(() => {

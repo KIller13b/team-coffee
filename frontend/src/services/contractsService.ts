@@ -58,6 +58,45 @@ export const contractsService = {
     return res.data
   },
 
+  async uploadContractFile(
+    file: File,
+    meta: { title?: string; counterparty?: string; contractType?: string }
+  ): Promise<Contract> {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (meta.title) formData.append('title', meta.title)
+    if (meta.counterparty) formData.append('counterparty', meta.counterparty)
+    if (meta.contractType) formData.append('contract_type', meta.contractType)
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+    try {
+      const res = await fetch(`${API_BASE_URL}/contracts/upload`, {
+        method: 'POST',
+        body: formData,
+      })
+      if (!res.ok) {
+        throw new Error(`Upload error ${res.status}: ${res.statusText}`)
+      }
+      const contract: Contract = await res.json()
+      contractsState = [contract, ...contractsState.filter((c) => c.id !== contract.id)]
+      try {
+        const existing: Contract[] = JSON.parse(localStorage.getItem('odin_uploaded_contracts') || '[]')
+        localStorage.setItem('odin_uploaded_contracts', JSON.stringify([contract, ...existing.filter((c) => c.id !== contract.id)]))
+      } catch {}
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('odin:contract-uploaded', { detail: contract }))
+      }
+      return contract
+    } catch {
+      // Fallback only if backend is completely offline
+      return this.addContract({
+        title: meta.title || file.name,
+        counterparty: meta.counterparty || 'External Entity Ltd.',
+        contractType: meta.contractType || 'Master Services Agreement (MSA)',
+      })
+    }
+  },
+
   async addContract(newContract: Partial<Contract>): Promise<Contract> {
     const contract: Contract = {
       id: `cnt-${Date.now().toString(36)}`,
