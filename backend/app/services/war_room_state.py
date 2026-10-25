@@ -762,7 +762,7 @@ class WarRoomStateStore:
         return int(m.group(1)) if m else 30
 
     def _get_contract_metadata(self, cid: str) -> Dict[str, Any]:
-        from app.api.contracts import CANONICAL_METADATA
+        from app.data.canonical_metadata import CANONICAL_METADATA
         clean = cid.replace("cnt-", "").upper()
         return CANONICAL_METADATA.get(clean, {})
 
