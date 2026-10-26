@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Share2, AlertTriangle, ShieldCheck, ArrowRight, Layers } from 'lucide-react'
+import { Share2, AlertTriangle, ShieldCheck, ArrowRight, Layers, Info } from 'lucide-react'
 
 const NODES = [
   { id: 'quillhub', label: 'Quillhub Inc.', type: 'company', x: 400, y: 250, color: '#06b6d4' },
@@ -7,7 +7,7 @@ const NODES = [
   { id: 'harbor', label: 'Harbor Retail (B1/B2)', type: 'customer', x: 650, y: 120, color: '#ef4444' },
   { id: 'vantage', label: 'Vantage Logistics (C1)', type: 'customer', x: 650, y: 380, color: '#f59e0b' },
   { id: 'pixelwright', label: 'Pixelwright Studio (D1)', type: 'contractor', x: 150, y: 380, color: '#a855f7' },
-  { id: 'std', label: 'Common Paper STD v2.0', type: 'standard', x: 400, y: 70, color: '#64748b' },
+  { id: 'std', label: 'Common Paper STD v2.0', type: 'standard', x: 400, y: 70, color: '#94a3b8' },
 ]
 
 const EDGES = [
@@ -27,31 +27,31 @@ export function ContractGraph() {
 
   return (
     <div className="space-y-4">
-      <div className="card">
-        <div className="card-header">
+      <div className="rounded-2xl border border-slate-800 bg-[#090e1a] text-slate-100 overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60">
           <div className="flex items-center gap-2">
-            <Share2 className="text-war-cyan" size={16} />
-            <span className="text-war-cyan font-mono font-bold text-sm">
-              FR9.1 INTERACTIVE CONTRACT & CONFLICT KNOWLEDGE GRAPH
+            <Share2 className="text-cyan-400" size={16} />
+            <span className="font-semibold text-sm tracking-wide text-white">
+              Cross-Contract Dependency & Conflict Topology
             </span>
           </div>
-          <div className="flex gap-4 text-xs font-mono">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Company</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Upstream Host</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Downstream High-Risk</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> Customer</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Contractor</span>
+          <div className="flex items-center gap-4 text-xs font-mono text-slate-400 flex-wrap">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cyan-400" /> Quillhub</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Upstream Host</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> High-Risk Client</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Logistics</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Contractor</span>
           </div>
         </div>
 
-        <div className="p-4 bg-war-bg relative overflow-hidden flex flex-col items-center">
+        <div className="p-4 relative overflow-hidden flex flex-col items-center">
           <svg className="w-full max-w-4xl h-[480px]" viewBox="0 0 800 480">
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
               </marker>
               <marker id="arrow-conflict" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
               </marker>
             </defs>
 
@@ -62,7 +62,7 @@ export function ContractGraph() {
               if (!fromNode || !toNode) return null
 
               const isConflict = edge.conflict
-              const strokeColor = isConflict ? '#ef4444' : '#334155'
+              const strokeColor = isConflict ? '#f43f5e' : '#334155'
               const midX = (fromNode.x + toNode.x) / 2
               const midY = (fromNode.y + toNode.y) / 2
 
@@ -81,28 +81,28 @@ export function ContractGraph() {
                     strokeWidth={isConflict ? 2.5 : 1.5}
                     strokeDasharray={edge.dashed ? '6,4' : undefined}
                     markerEnd={isConflict ? 'url(#arrow-conflict)' : 'url(#arrow)'}
-                    className="transition-all duration-300 group-hover:stroke-war-cyan"
+                    className="transition-all duration-300 group-hover:stroke-cyan-400"
                   />
                   <rect
-                    x={midX - 55}
+                    x={midX - 60}
                     y={midY - 10}
-                    width={110}
+                    width={120}
                     height={20}
                     rx={4}
-                    fill="#0f1629"
-                    stroke={isConflict ? '#ef4444' : '#1e293b'}
+                    fill="#0f172a"
+                    stroke={isConflict ? '#f43f5e' : '#334155'}
                     strokeWidth={1}
                   />
                   <text
                     x={midX}
                     y={midY + 4}
-                    fill={isConflict ? '#fca5a5' : '#94a3b8'}
+                    fill={isConflict ? '#fda4af' : '#94a3b8'}
                     fontSize="9"
                     fontFamily="monospace"
                     textAnchor="middle"
                     className="font-bold pointer-events-none"
                   >
-                    {edge.label.length > 18 ? edge.label.slice(0, 16) + '..' : edge.label}
+                    {edge.label.length > 20 ? edge.label.slice(0, 18) + '..' : edge.label}
                   </text>
                 </g>
               )
@@ -122,10 +122,10 @@ export function ContractGraph() {
                     cx={node.x}
                     cy={node.y}
                     r={isSelected ? 32 : 26}
-                    fill="#0f1629"
+                    fill="#0f172a"
                     stroke={node.color}
                     strokeWidth={isSelected ? 3.5 : 2}
-                    className="transition-all duration-200 hover:scale-110"
+                    className="transition-all duration-200 hover:scale-105"
                   />
                   <circle
                     cx={node.x}
@@ -137,7 +137,7 @@ export function ContractGraph() {
                   <text
                     x={node.x}
                     y={node.y + 42}
-                    fill="#e2e8f0"
+                    fill="#f8fafc"
                     fontSize="11"
                     fontFamily="monospace"
                     fontWeight="bold"
@@ -163,15 +163,15 @@ export function ContractGraph() {
 
         {/* Inspector panel */}
         {(selectedNode || selectedEdge) && (
-          <div className="p-4 border-t border-war-border bg-war-surface flex items-start gap-4 animate-fade-in">
+          <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex items-start gap-4">
             {selectedNode && (
               <div className="space-y-1 text-xs">
-                <div className="font-bold font-mono text-war-cyan text-sm flex items-center gap-2">
+                <div className="font-bold font-mono text-cyan-400 text-sm flex items-center gap-2">
                   <Layers size={14} />
                   NODE INSPECTION: {selectedNode.label}
                 </div>
-                <div className="text-war-muted">Entity Type: <span className="text-war-text font-bold">{selectedNode.type}</span></div>
-                <div className="text-war-text mt-2 font-mono">
+                <div className="text-slate-400">Entity Type: <span className="text-white font-bold">{selectedNode.type}</span></div>
+                <div className="text-slate-200 mt-2 font-mono">
                   {selectedNode.id === 'quillhub' && 'Principal entity. Route Optimizer B2B SaaS platform provider.'}
                   {selectedNode.id === 'stratonode' && 'Upstream Cloud Provider (A1, A2, A3). 99.5% uptime target, 15-day SLA claim deadline.'}
                   {selectedNode.id === 'harbor' && 'Enterprise Retail Grocer (B1, B2). $40,000/mo. 99.9% uptime target. Insurance lapse termination trap.'}
@@ -184,14 +184,14 @@ export function ContractGraph() {
 
             {selectedEdge && (
               <div className="space-y-1 text-xs">
-                <div className="font-bold font-mono text-red-400 text-sm flex items-center gap-2">
+                <div className="font-bold font-mono text-rose-400 text-sm flex items-center gap-2">
                   <AlertTriangle size={14} />
                   RELATIONSHIP & CONFLICT: {selectedEdge.label}
                 </div>
-                <div className="text-war-muted font-mono">
-                  Between: <span className="text-war-text font-bold">{selectedEdge.from}</span> ➔ <span className="text-war-text font-bold">{selectedEdge.to}</span>
+                <div className="text-slate-400 font-mono">
+                  Between: <span className="text-white font-bold">{selectedEdge.from}</span> ➔ <span className="text-white font-bold">{selectedEdge.to}</span>
                 </div>
-                <div className="text-war-text mt-2 p-2 bg-war-bg border border-war-border rounded font-mono">
+                <div className="text-slate-200 mt-2 p-2.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs">
                   {selectedEdge.note}
                 </div>
               </div>

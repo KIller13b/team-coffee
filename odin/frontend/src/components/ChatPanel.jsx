@@ -3,12 +3,12 @@ import { Send, Bot, User, Sparkles, MessageSquare, Trash2, ArrowRight } from 'lu
 import { Citation, AgentBadge } from './Shared'
 
 const AGENTS = [
-  { id: 'council', name: 'ALL COUNCIL (ODIN)', role: 'Synthesized War Room Consensus', color: 'text-war-cyan border-war-cyan' },
-  { id: 'loki', name: 'LOKI', role: 'Adversarial Counterparty Counsel', color: 'text-orange-400 border-orange-400' },
-  { id: 'norns', name: 'NORNS', role: 'Timeline & Financial Calculations', color: 'text-purple-400 border-purple-400' },
-  { id: 'thor', name: 'THOR', role: 'Contract Clause & Evidence Grounding', color: 'text-yellow-400 border-yellow-400' },
-  { id: 'heimdall', name: 'HEIMDALL', role: 'Event Logs & Incident Verifier', color: 'text-blue-400 border-blue-400' },
-  { id: 'tyr', name: 'TYR', role: 'Arbitrator & Action Notice Drafter', color: 'text-green-400 border-green-400' },
+  { id: 'council', name: 'ALL COUNCIL', role: 'Full War Room Consensus', color: 'indigo' },
+  { id: 'loki', name: 'LOKI', role: 'Adversarial Red-Team', color: 'rose' },
+  { id: 'norns', name: 'NORNS', role: 'Timeline & Financial Calculations', color: 'purple' },
+  { id: 'thor', name: 'THOR', role: 'Contract Clause & Grounding', color: 'cyan' },
+  { id: 'heimdall', name: 'HEIMDALL', role: 'Event Incident Verifier', color: 'blue' },
+  { id: 'tyr', name: 'TYR', role: 'Legal Rulings & Notices', color: 'emerald' },
 ]
 
 const QUICK_PROMPTS = [
@@ -121,35 +121,39 @@ export function ChatPanel({ store }) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] space-y-3 font-mono">
+    <div className="flex flex-col h-[700px] space-y-3 font-sans">
       {/* Top Agent Selector */}
-      <div className="card p-3 flex flex-wrap items-center gap-2 border-war-cyan/30 bg-war-surface">
-        <span className="text-xs text-war-muted font-bold mr-1 flex items-center gap-1.5">
-          <Bot size={14} className="text-war-cyan" /> QUERY AGENT:
-        </span>
-        {AGENTS.map(a => (
-          <button
-            key={a.id}
-            onClick={() => setSelectedAgent(a.id)}
-            className={`px-2.5 py-1 text-xs rounded border transition-all ${
-              selectedAgent === a.id
-                ? 'bg-war-blue text-white font-bold border-war-cyan shadow-sm shadow-war-blue/30'
-                : 'border-war-border text-war-muted hover:text-war-text hover:border-war-cyan'
-            }`}
-          >
-            {a.name}
-          </button>
-        ))}
+      <div className="workspace-panel p-3.5 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-2 flex items-center gap-1.5">
+            <Bot size={15} className="text-indigo-600" /> Consult:
+          </span>
+          {AGENTS.map(a => (
+            <button
+              key={a.id}
+              onClick={() => setSelectedAgent(a.id)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                selectedAgent === a.id
+                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {a.name}
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={() => setMessages([messages[0]])}
           title="Clear chat history"
-          className="ml-auto text-xs text-war-muted hover:text-red-400 p-1 rounded"
+          className="text-xs text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition-colors flex items-center gap-1"
         >
-          <Trash2 size={14} />
+          <Trash2 size={13} />
+          <span>Clear</span>
         </button>
       </div>
 
-      {/* Quick Prompts Carousel */}
+      {/* Quick Prompts Chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 text-xs">
         {QUICK_PROMPTS.map((p, idx) => (
           <button
@@ -158,57 +162,58 @@ export function ChatPanel({ store }) {
               setSelectedAgent(p.agent)
               handleSend(p.text, p.agent)
             }}
-            className="shrink-0 bg-war-surface hover:bg-war-accent/30 border border-war-border hover:border-war-gold text-war-text px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all text-left"
+            className="shrink-0 bg-white hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 text-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all text-left shadow-xs"
           >
-            <Sparkles size={12} className="text-war-gold shrink-0" />
-            <span className="font-bold">{p.title}</span>
+            <Sparkles size={12} className="text-amber-500 shrink-0" />
+            <span className="font-medium">{p.title}</span>
           </button>
         ))}
       </div>
 
       {/* Chat Messages Stream */}
-      <div className="flex-1 card p-4 overflow-y-auto space-y-4 bg-war-bg/60">
+      <div className="flex-1 workspace-panel p-5 overflow-y-auto space-y-5 bg-white">
         {messages.map((m, idx) => {
           const isUser = m.role === 'user'
+
           return (
             <div
               key={idx}
-              className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}
+              className={`flex items-start gap-3.5 ${isUser ? 'flex-row-reverse' : ''}`}
             >
               <div
-                className={`w-8 h-8 rounded flex items-center justify-center shrink-0 text-xs font-bold ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
                   isUser
-                    ? 'bg-war-blue text-white'
-                    : 'bg-gradient-to-br from-war-surface to-war-card border border-war-cyan text-war-cyan'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-slate-900 text-amber-400 border border-slate-800'
                 }`}
               >
                 {isUser ? <User size={15} /> : <Bot size={15} />}
               </div>
 
               <div
-                className={`max-w-[85%] rounded-lg p-4 space-y-3 ${
+                className={`max-w-[85%] rounded-2xl p-4.5 space-y-3 ${
                   isUser
-                    ? 'bg-war-blue/20 border border-war-blue/40 text-war-text'
-                    : 'bg-war-surface border border-war-border text-war-text shadow-md'
+                    ? 'bg-indigo-600 text-white shadow-sm rounded-tr-none'
+                    : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-tl-none'
                 }`}
               >
-                <div className="flex items-center justify-between gap-4 border-b border-war-border/50 pb-1.5 text-[11px] text-war-muted">
-                  <span className="font-bold text-war-cyan flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-4 border-b border-black/10 pb-1.5 text-[11px] opacity-75">
+                  <span className="font-semibold font-mono">
                     {isUser ? 'YOU' : m.agentTitle}
                   </span>
-                  <span>{m.timestamp}</span>
+                  <span className="font-mono text-[10px]">{m.timestamp}</span>
                 </div>
 
                 {/* Message body */}
-                <div className="text-xs leading-relaxed whitespace-pre-wrap font-sans prose prose-invert max-w-none">
+                <div className={`text-xs leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white' : 'text-slate-800'}`}>
                   {m.content}
                 </div>
 
                 {/* Grounded Citations */}
                 {m.citations && m.citations.length > 0 && (
-                  <div className="pt-2 border-t border-war-border/60 space-y-1.5">
-                    <span className="text-[11px] text-war-muted font-mono block font-bold">
-                      GROUNDED CITATIONS & EVIDENCE:
+                  <div className="pt-2 border-t border-slate-200 space-y-2">
+                    <span className="text-[11px] text-slate-500 font-mono font-bold block uppercase tracking-wider">
+                      Grounded Citations & Evidence:
                     </span>
                     {m.citations.map((c, cIdx) => (
                       <Citation key={cIdx} citation={c} />
@@ -218,12 +223,12 @@ export function ChatPanel({ store }) {
 
                 {/* Suggested followups */}
                 {m.followups && m.followups.length > 0 && (
-                  <div className="pt-2 border-t border-war-border/60 flex flex-wrap gap-1.5">
+                  <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-1.5">
                     {m.followups.map((f, fIdx) => (
                       <button
                         key={fIdx}
                         onClick={() => handleSend(f, m.agent)}
-                        className="text-[11px] bg-war-bg hover:bg-war-accent/30 border border-war-border text-war-cyan px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                        className="text-[11px] bg-white hover:bg-indigo-50 border border-slate-200 text-indigo-700 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors font-medium shadow-2xs"
                       >
                         <ArrowRight size={10} />
                         {f}
@@ -237,9 +242,9 @@ export function ChatPanel({ store }) {
         })}
 
         {loading && (
-          <div className="flex items-center gap-3 text-war-muted text-xs animate-pulse p-2">
-            <Bot size={16} className="text-war-cyan" />
-            <span>Council agents deliberating and verifying citations...</span>
+          <div className="flex items-center gap-3 text-slate-500 text-xs animate-pulse p-3 bg-slate-50 rounded-xl border border-slate-200 w-fit">
+            <Bot size={15} className="text-indigo-600 animate-spin" />
+            <span>Agent council deliberating and verifying citations...</span>
           </div>
         )}
         <div ref={chatEndRef} />
@@ -258,15 +263,15 @@ export function ChatPanel({ store }) {
             }
           }}
           placeholder="Ask the council anything about Quillhub contracts, SLA gaps, default conditions, or events... (Press Enter to send)"
-          className="flex-1 bg-war-surface border border-war-border rounded-lg p-3 text-xs text-war-text placeholder-war-muted focus:outline-none focus:border-war-cyan resize-none font-mono"
+          className="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none font-sans shadow-xs"
         />
         <button
           onClick={() => handleSend()}
           disabled={loading || !input.trim()}
-          className="px-5 bg-war-blue hover:bg-blue-600 disabled:opacity-40 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-war-blue/20"
+          className="px-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
         >
           <Send size={15} />
-          SEND
+          <span>Send</span>
         </button>
       </div>
     </div>
