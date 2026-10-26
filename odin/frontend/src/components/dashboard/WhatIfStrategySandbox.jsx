@@ -398,32 +398,32 @@ export function WhatIfStrategySandbox({ store }) {
         </div>
 
         {/* ─── Norns Timeline Slider Control ───────────────────────────────── */}
-        <div className="mt-5 p-4 rounded-xl bg-slate-900 text-white shadow-inner">
+        <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <Clock size={16} className="text-cyan-400 animate-pulse" />
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
+              <Clock size={16} className="text-indigo-600 animate-pulse" />
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-900">
                 Norns Simulation Timeline Scrubber
               </span>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="text-xs font-mono text-slate-300">
-                Simulated Point: <strong className="text-white text-sm">Day {dayOffset}</strong> ({formattedSimDate})
+              <div className="text-xs font-mono text-slate-600">
+                Simulated Point: <strong className="text-slate-900 text-sm font-bold">Day {dayOffset}</strong> ({formattedSimDate})
               </div>
 
               {/* Early termination cause toggle */}
               {scenarioType === 'early_termination' && (
-                <div className="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700 text-[11px] font-mono">
+                <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 text-[11px] font-mono shadow-2xs">
                   <button
                     onClick={() => handleCauseToggle('breach')}
-                    className={`px-2 py-0.5 rounded ${terminationCause === 'breach' ? 'bg-rose-500 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${terminationCause === 'breach' ? 'bg-rose-600 text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}`}
                   >
                     For Cause
                   </button>
                   <button
                     onClick={() => handleCauseToggle('convenience')}
-                    className={`px-2 py-0.5 rounded ${terminationCause === 'convenience' ? 'bg-amber-500 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${terminationCause === 'convenience' ? 'bg-amber-600 text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}`}
                   >
                     Convenience
                   </button>
@@ -440,10 +440,10 @@ export function WhatIfStrategySandbox({ store }) {
               max={180}
               value={dayOffset}
               onChange={handleSliderChange}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300 transition-all"
+              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 hover:accent-indigo-500 transition-all"
             />
 
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 px-0.5">
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 px-0.5 font-medium">
               <span>Day 1 (Mar 01)</span>
               <span>Day 45 (Apr 15)</span>
               <span>Day 92 (Jun 01)</span>
@@ -453,8 +453,8 @@ export function WhatIfStrategySandbox({ store }) {
           </div>
 
           {/* Quick Jump Buttons */}
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-800 overflow-x-auto pb-1 text-xs">
-            <span className="text-[11px] font-mono text-slate-400 shrink-0">Quick Jumps:</span>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200 overflow-x-auto pb-1 text-xs">
+            <span className="text-[11px] font-mono text-slate-500 shrink-0 font-medium">Quick Jumps:</span>
             {[
               { day: 15, label: 'Day 15 (Mar 15)' },
               { day: 30, label: 'Day 30 (Mar 30)' },
@@ -467,10 +467,10 @@ export function WhatIfStrategySandbox({ store }) {
               <button
                 key={item.day}
                 onClick={() => handleJumpDay(item.day)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition-colors whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all whitespace-nowrap border ${
                   dayOffset === item.day
-                    ? 'bg-cyan-500 text-slate-950 font-bold'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                    ? 'bg-indigo-600 text-white font-bold border-indigo-600 shadow-xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
                 }`}
               >
                 {item.label}
@@ -563,11 +563,11 @@ export function WhatIfStrategySandbox({ store }) {
                 onClick={() => setActiveTab('immediate')}
                 className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'immediate'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Flame size={14} className={activeTab === 'immediate' ? 'text-amber-400' : 'text-slate-400'} />
+                <Flame size={14} className={activeTab === 'immediate' ? 'text-amber-300' : 'text-slate-400'} />
                 <span>1. Immediate Downstream Penalties</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                   activeTab === 'immediate' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
@@ -580,11 +580,11 @@ export function WhatIfStrategySandbox({ store }) {
                 onClick={() => setActiveTab('cascades')}
                 className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'cascades'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Layers size={14} className={activeTab === 'cascades' ? 'text-cyan-400' : 'text-slate-400'} />
+                <Layers size={14} className={activeTab === 'cascades' ? 'text-indigo-200' : 'text-slate-400'} />
                 <span>2. Cascade Effects on Dependent Contracts</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                   activeTab === 'cascades' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
@@ -597,11 +597,11 @@ export function WhatIfStrategySandbox({ store }) {
                 onClick={() => setActiveTab('severance')}
                 className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'severance'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <DollarSign size={14} className={activeTab === 'severance' ? 'text-emerald-400' : 'text-slate-400'} />
+                <DollarSign size={14} className={activeTab === 'severance' ? 'text-emerald-300' : 'text-slate-400'} />
                 <span>3. Severance & Early-Termination Costs</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                   activeTab === 'severance' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
@@ -614,11 +614,11 @@ export function WhatIfStrategySandbox({ store }) {
                 onClick={() => setActiveTab('portfolio')}
                 className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'portfolio'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Building2 size={14} className={activeTab === 'portfolio' ? 'text-indigo-400' : 'text-slate-400'} />
+                <Building2 size={14} className={activeTab === 'portfolio' ? 'text-indigo-200' : 'text-slate-400'} />
                 <span>Portfolio Impact Status Grid</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                   activeTab === 'portfolio' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
@@ -631,11 +631,11 @@ export function WhatIfStrategySandbox({ store }) {
                 onClick={() => setActiveTab('timeline')}
                 className={`px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === 'timeline'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Clock size={14} className={activeTab === 'timeline' ? 'text-purple-400' : 'text-slate-400'} />
+                <Clock size={14} className={activeTab === 'timeline' ? 'text-indigo-200' : 'text-slate-400'} />
                 <span>Projected Norns Milestones</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
                   activeTab === 'timeline' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
@@ -703,7 +703,7 @@ export function WhatIfStrategySandbox({ store }) {
                     <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 text-white">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-300">
                             {cas.source_contract}
                           </span>
                           <ArrowRight size={14} className="text-slate-400" />
@@ -862,7 +862,7 @@ export function WhatIfStrategySandbox({ store }) {
                     <div key={idx} className="p-3.5 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-3 shadow-xs">
                       <div className="flex items-start gap-3">
                         <div className="w-12 text-center shrink-0">
-                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 text-white block">
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 block">
                             Day {item.day}
                           </span>
                           <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
@@ -899,17 +899,22 @@ export function WhatIfStrategySandbox({ store }) {
           </div>
 
           {/* ─── Bottom Strategic Recommendations (Tyr) ────────────────────── */}
-          <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-mono text-amber-400 font-bold uppercase tracking-wider">
-              <Scale size={14} />
-              <span>Tyr Recommended Strategic Counter-Measures:</span>
+          <div className="p-5 rounded-xl bg-gradient-to-r from-amber-50/80 via-orange-50/50 to-amber-50/80 border border-amber-200 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+              <div className="flex items-center gap-2 text-xs font-mono text-amber-900 font-bold uppercase tracking-wider">
+                <Scale size={15} className="text-amber-700" />
+                <span>Tyr Recommended Strategic Counter-Measures:</span>
+              </div>
+              <span className="text-[11px] font-mono text-amber-800 bg-white/90 px-2.5 py-0.5 rounded-full border border-amber-200 shadow-2xs self-start sm:self-auto font-medium">
+                Autonomous Legal Remedies & Mitigation Protocols
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
               {res.recommended_mitigations.map((rec, idx) => (
-                <div key={idx} className="flex items-start gap-2 bg-slate-800/80 p-2.5 rounded-lg border border-slate-700">
-                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{rec}</span>
+                <div key={idx} className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs hover:border-amber-300 hover:shadow-xs transition-all">
+                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed text-slate-800 font-sans">{rec}</span>
                 </div>
               ))}
             </div>
