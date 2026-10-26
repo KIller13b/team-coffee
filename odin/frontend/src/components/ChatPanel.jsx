@@ -197,15 +197,15 @@ export function ChatPanel({ store }) {
                     : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-tl-none'
                 }`}
               >
-                <div className="flex items-center justify-between gap-4 border-b border-black/10 pb-1.5 text-[11px] opacity-75">
-                  <span className="font-semibold font-mono">
+                <div className={`flex items-center justify-between gap-4 border-b ${isUser ? 'border-white/20' : 'border-slate-200'} pb-1.5 text-[11px] ${isUser ? 'text-indigo-100' : 'text-slate-500'}`}>
+                  <span className="font-semibold font-mono tracking-wide">
                     {isUser ? 'YOU' : m.agentTitle}
                   </span>
                   <span className="font-mono text-[10px]">{m.timestamp}</span>
                 </div>
 
                 {/* Message body */}
-                <div className={`text-xs leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white' : 'text-slate-800'}`}>
+                <div className={`text-xs leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white font-medium' : 'text-slate-800'}`}>
                   {m.content}
                 </div>
 

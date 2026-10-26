@@ -122,7 +122,7 @@ AGENT_ROLES = {
     "tyr": "You are Tyr, the arbitrator. Weigh disputes between Loki and Heimdall, issue binding legal rulings, and draft formal action notices."
 }
 
-def query_groq(prompt: str, agent: str, system_context: str) -> Optional[str]:
+def query_groq(prompt: str, agent: str, system_context: str) -> Optional[tuple]:
     groq_key, groq_model = get_groq_config()
     if not groq_key:
         return None
@@ -137,9 +137,15 @@ def query_groq(prompt: str, agent: str, system_context: str) -> Optional[str]:
 
     system_instruction = f"""{agent_role}
 You are operating inside the Odin Contract War Room for Quillhub Inc. (B2B SaaS route optimization platform).
-Always ground your answers in the provided portfolio facts and contract provisions.
+Always ground your answers in the provided portfolio facts, company context, and contract provisions.
 Do NOT hallucinate outside agreements. Always specify document IDs (A1, A2, A3, B1, B2, C1, D1, STD) and clause numbers where relevant.
 Be concise, incisive, and professional.
+
+If the user asks an off-topic or conversational question (such as simple arithmetic, greetings, or casual chatter), answer the question directly in one brief sentence, and politely invite them to consult on Quillhub's contract war room objectives (e.g., Harbor Retail SLA breaches, insurance lapse, or StratoNode recovery gaps). Do NOT provide artificial followups for casual queries.
+
+For genuine war room questions, provide 2 to 3 tailored, context-aware follow-up questions at the very end of your response, formatted strictly on separate lines starting with 'FOLLOWUP: '. Example:
+FOLLOWUP: What is the financial exposure if Harbor terminates under B1 §8.1?
+FOLLOWUP: Has Tyr drafted the rejection notice for the March 3 SLA claim?
 
 GROUNDING REPOSITORY CONTEXT:
 {system_context}
@@ -158,7 +164,19 @@ GROUNDING REPOSITORY CONTEXT:
     try:
         res = requests.post(url, headers=headers, json=payload, timeout=12)
         if res.status_code == 200:
-            return res.json()["choices"][0]["message"]["content"]
+            full_text = res.json()["choices"][0]["message"]["content"]
+            lines = full_text.split("\n")
+            clean_lines = []
+            followups = []
+            for line in lines:
+                if line.strip().startswith("FOLLOWUP:"):
+                    f_text = line.strip()[len("FOLLOWUP:"):].strip().strip("*").strip('"').strip("'")
+                    if f_text:
+                        followups.append(f_text)
+                else:
+                    clean_lines.append(line)
+            clean_reply = "\n".join(clean_lines).strip()
+            return clean_reply, followups
     except Exception as e:
         print(f"[ChatEngine] Groq API call failed: {e}")
     return None
@@ -221,8 +239,9 @@ def answer_query(req: ChatRequest) -> ChatResponse:
        - June 15 (E-17): Harbor credit claim for March (untimely, barred by 45-day deadline) and May (timely).
     """
 
-    groq_reply = query_groq(req.message, agent, portfolio_summary)
-    if groq_reply:
+    groq_res = query_groq(req.message, agent, portfolio_summary)
+    if groq_res:
+        groq_reply, dynamic_followups = groq_res
         # Match citations dynamically
         matched_citations = []
         if "b1" in groq_reply.lower() or "harbor" in groq_reply.lower():
@@ -237,11 +256,7 @@ def answer_query(req: ChatRequest) -> ChatResponse:
             agent_title=AGENT_TITLES[agent],
             reply=groq_reply,
             citations=matched_citations,
-            suggested_followups=[
-                "What does Loki advise on this issue?",
-                "Has Tyr prepared an action draft for this?",
-                "What is the financial exposure associated with this risk?"
-            ]
+            suggested_followups=dynamic_followups
         )
 
     # Fallback to local search
