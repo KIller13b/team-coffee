@@ -19,6 +19,7 @@ import {
   ChevronUp
 } from 'lucide-react'
 import { AgentCouncilCanvas } from './AgentCouncilCanvas'
+import { WhatIfStrategySandbox } from './WhatIfStrategySandbox'
 import { SeverityBadge, MoneyBadge, AgentBadge, Citation } from '../Shared'
 
 function StatCard({ title, value, subtitle, icon: Icon, colorClass, borderClass, onClick }) {
@@ -169,6 +170,9 @@ export function DashboardView({ store }) {
         onNavigateToTimeline={() => setActivePage('timeline')}
         onNavigateToContracts={() => setActivePage('contracts')}
       />
+
+      {/* Advanced Visualization & Analytics: What-If Strategy Sandbox */}
+      <WhatIfStrategySandbox store={store} />
 
       {/* Two Column Section: Categories (Human Approval Needed / Breaches) & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

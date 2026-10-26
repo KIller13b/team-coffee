@@ -325,3 +325,71 @@ from .chat_engine import ChatRequest, ChatResponse, answer_query
 def chat_endpoint(req: ChatRequest):
     """Natural language interactive chatbot querying the agent council."""
     return answer_query(req)
+
+
+# ─── What-If Strategy Sandbox Endpoints ──────────────────────────────────────
+
+from ..agents.whatif_engine import (
+    WhatIfSimulationRequest,
+    WhatIfSimulationResult,
+    simulate_scenario,
+)
+
+@app.post("/api/what-if/simulate", response_model=WhatIfSimulationResult)
+@app.post("/api/simulate", response_model=WhatIfSimulationResult)
+def simulate_endpoint(req: WhatIfSimulationRequest):
+    """
+    What-If Strategy Sandbox endpoint:
+    Simulates hypothetical scenarios via Norns timeline slider and recalculates
+    immediate downstream penalties, cross-contract cascade effects, and portfolio severance costs.
+    """
+    return simulate_scenario(req)
+
+
+@app.get("/api/what-if/presets")
+def get_whatif_presets():
+    """Return pre-configured strategic scenario presets."""
+    return {
+        "presets": [
+            {
+                "id": "vendor_default_day_45",
+                "label": "Vendor X (StratoNode) Defaults on Day 45",
+                "scenario_type": "vendor_default",
+                "day_offset": 45,
+                "target_contract_id": "QH-STRATO-2026-001",
+                "target_entity_name": "StratoNode LLC",
+                "description": "Simulate catastrophic infrastructure insolvency and cloud outage on April 14, 2027.",
+                "badge": "High Cascade Risk"
+            },
+            {
+                "id": "terminate_product_y_early",
+                "label": "Terminate Product Y (Harbor Retail) Early",
+                "scenario_type": "early_termination",
+                "day_offset": 60,
+                "target_contract_id": "QH-HARBOR-2026-001",
+                "target_entity_name": "Harbor Retail Inc.",
+                "description": "Calculate lost ARR, prepaid fee refunds, and territorial exclusivity relief on Vantage Logistics.",
+                "badge": "ARR Impact"
+            },
+            {
+                "id": "developer_default_day_60",
+                "label": "Frontend Agency (Pixelwright) Defaults on Day 60",
+                "scenario_type": "developer_default",
+                "day_offset": 60,
+                "target_contract_id": "QH-PIXEL-2026-001",
+                "target_entity_name": "Pixelwright Studio",
+                "description": "Milestone delivery failure, code escrow freeze, and emergency agency procurement costs.",
+                "badge": "Delivery Risk"
+            },
+            {
+                "id": "insurance_lapse_day_106",
+                "label": "Meridian Insurance Lapses on Day 106 (June 30)",
+                "scenario_type": "insurance_lapse",
+                "day_offset": 106,
+                "target_contract_id": "QH-HARBOR-2026-001",
+                "target_entity_name": "Meridian Mutual / Harbor",
+                "description": "Failure to renew policies triggers B1 §7.2 material breach and unilateral contract termination.",
+                "badge": "Critical Default"
+            }
+        ]
+    }

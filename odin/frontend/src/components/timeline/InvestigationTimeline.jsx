@@ -17,11 +17,14 @@ import {
   SkipBack,
   SkipForward,
   Calendar,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react'
 import { Citation, MoneyBadge, StatusBadge, AgentBadge } from '../Shared'
+import { WhatIfStrategySandbox } from '../dashboard/WhatIfStrategySandbox'
 
-export function InvestigationTimeline({ analysis, onSelectContract }) {
+export function InvestigationTimeline({ analysis, store, onSelectContract }) {
+  const [timelineMode, setTimelineMode] = useState('audit_trail') // 'audit_trail' | 'what_if'
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedId, setExpandedId] = useState(null)
@@ -124,26 +127,57 @@ export function InvestigationTimeline({ analysis, onSelectContract }) {
             </p>
           </div>
 
-          {/* Worst-Case Summary Pill */}
-          {worstCase && (
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-4">
-              <div>
-                <div className="text-[11px] font-semibold text-amber-800 uppercase tracking-wider">
-                  Total Worst-Case Exposure
-                </div>
-                <div className="text-2xl font-bold font-mono text-amber-950">
-                  <MoneyBadge amount={worstCase.total_exposure_usd} />
-                </div>
-              </div>
-              <div className="text-xs text-amber-800/80 max-w-xs hidden sm:block">
-                Evaluated under adverse counterparty termination & claim scenarios.
-              </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* View Mode Toggle: Scrubber vs What-If Sandbox */}
+            <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-2xs">
+              <button
+                onClick={() => setTimelineMode('audit_trail')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  timelineMode === 'audit_trail'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Clock size={13} />
+                <span>Investigation Trail</span>
+              </button>
+              <button
+                onClick={() => setTimelineMode('what_if')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  timelineMode === 'what_if'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Sparkles size={13} className={timelineMode === 'what_if' ? 'text-amber-300' : 'text-indigo-600'} />
+                <span>What-If Strategy Sandbox</span>
+              </button>
             </div>
-          )}
+
+            {/* Worst-Case Summary Pill */}
+            {worstCase && timelineMode === 'audit_trail' && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-3">
+                <div>
+                  <div className="text-[10px] font-semibold text-amber-800 uppercase tracking-wider">
+                    Worst-Case Exposure
+                  </div>
+                  <div className="text-xl font-bold font-mono text-amber-950">
+                    <MoneyBadge amount={worstCase.total_exposure_usd} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* ─── INTERACTIVE TIMELINE SLIDER CONTROLLER ───────────────────────── */}
-        <div className="mt-5 p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
+        {timelineMode === 'what_if' ? (
+          <div className="mt-5">
+            <WhatIfStrategySandbox store={store || { analysis }} />
+          </div>
+        ) : (
+          <div className="space-y-4 mt-5">
+            {/* ─── INTERACTIVE TIMELINE SLIDER CONTROLLER ───────────────────────── */}
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-indigo-600 text-white shadow-xs">
@@ -331,9 +365,13 @@ export function InvestigationTimeline({ analysis, onSelectContract }) {
           </div>
         )}
       </div>
+    )}
+  </div>
 
-      {/* Filter and Search Controls for Chronological Feed */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+  {timelineMode === 'audit_trail' && (
+    <>
+        {/* Filter and Search Controls for Chronological Feed */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Status Filters */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           {[
@@ -510,6 +548,8 @@ export function InvestigationTimeline({ analysis, onSelectContract }) {
           )}
         </div>
       )}
+          </>
+        )}
     </div>
   )
 }

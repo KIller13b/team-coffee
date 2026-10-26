@@ -128,4 +128,36 @@ export const useStore = create((set, get) => ({
   // Benchmark helpers
   loadBenchmarkQ1: async () => apiFetch('/api/benchmark/q1'),
   loadBenchmarkQ2: async () => apiFetch('/api/benchmark/q2'),
+
+  // ── What-If Strategy Sandbox State ────────────────────────────────────────
+  simulationResult: null,
+  simulating: false,
+  whatIfPresets: [],
+
+  loadWhatIfPresets: async () => {
+    try {
+      const data = await apiFetch('/api/what-if/presets')
+      set({ whatIfPresets: data.presets || [] })
+      return data.presets
+    } catch (e) {
+      console.error('Failed to load what-if presets:', e)
+      return []
+    }
+  },
+
+  runWhatIfSimulation: async (params) => {
+    set({ simulating: true })
+    try {
+      const result = await apiPost('/api/what-if/simulate', {
+        checkpoint_index: get().currentCheckpoint,
+        ...params
+      })
+      set({ simulationResult: result, simulating: false })
+      return result
+    } catch (e) {
+      console.error('Simulation error:', e)
+      set({ simulating: false })
+      throw e
+    }
+  }
 }))

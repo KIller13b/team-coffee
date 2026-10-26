@@ -60,6 +60,7 @@ export default function App() {
             {activePage === 'timeline' && (
               <InvestigationTimeline 
                 analysis={analysis} 
+                store={store}
                 onSelectContract={(id) => {
                   setSelectedContractId(id)
                   setActivePage('contracts')
