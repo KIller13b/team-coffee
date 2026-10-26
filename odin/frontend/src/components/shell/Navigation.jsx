@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { 
   LayoutDashboard, 
   Clock, 
@@ -10,10 +10,13 @@ import {
   ShieldAlert, 
   CheckCircle2, 
   AlertCircle,
-  Award
+  Award,
+  Volume2
 } from 'lucide-react'
+import { VoiceBriefingModal } from '../council/VoiceBriefingModal'
 
 export function Navigation({ store, loading }) {
+  const [showVoiceModal, setShowVoiceModal] = useState(false)
   const { activePage, setActivePage, analysis, checkpoints, currentCheckpoint, setCheckpoint, runAnalysis, systemHealth } = store
 
   const NAV_ITEMS = [
@@ -144,6 +147,16 @@ export function Navigation({ store, loading }) {
               })}
             </div>
 
+            {/* Voice War Room Briefing Button */}
+            <button
+              onClick={() => setShowVoiceModal(true)}
+              className="px-3 py-2 bg-amber-50 hover:bg-amber-100/80 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95 group"
+              title="Summon Voice of Odin — Live Audio War Room Deliberation"
+            >
+              <Volume2 size={14} className="text-amber-600 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">Voice Briefing</span>
+            </button>
+
             <button
               onClick={() => runAnalysis(currentCheckpoint)}
               disabled={loading}
@@ -164,6 +177,13 @@ export function Navigation({ store, loading }) {
           </div>
         </div>
       </div>
+
+      {/* Voice Briefing Modal */}
+      <VoiceBriefingModal
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+        store={store}
+      />
     </header>
   )
 }

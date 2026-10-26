@@ -5,10 +5,12 @@ Exposes endpoints for running the orchestrator, fetching state, and interacting 
 
 from __future__ import annotations
 import json
+from pathlib import Path
 from typing import Any, Dict, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ..agents.odin import run_odin
@@ -98,6 +100,15 @@ def get_contract_content(doc_id: str):
         return {"doc_id": doc_id.upper(), "content": content}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/api/audio/{filename}")
+def get_audio_clip(filename: str):
+    """Return generated neural audio MP3 for voice briefing."""
+    audio_path = Path(__file__).parent.parent / "static" / "audio" / filename
+    if not audio_path.exists():
+        raise HTTPException(status_code=404, detail="Audio clip not found")
+    return FileResponse(str(audio_path), media_type="audio/mpeg")
 
 
 @app.get("/api/events")
