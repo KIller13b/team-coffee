@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { warRoomState } from '../services/warRoomState';
 import { RiskModel } from '../models/Risk.model';
 
@@ -50,10 +51,12 @@ risksRouter.get('/:id', async (req: Request, res: Response, next: NextFunction) 
       return;
     }
 
-    const dbRisk = await RiskModel.findOne({ id }).lean();
-    if (dbRisk) {
-      res.json(dbRisk);
-      return;
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      const dbRisk = await RiskModel.findOne({ id }).lean();
+      if (dbRisk) {
+        res.json(dbRisk);
+        return;
+      }
     }
 
     res.status(404).json({ detail: 'Risk not found', error: 'Risk not found' });

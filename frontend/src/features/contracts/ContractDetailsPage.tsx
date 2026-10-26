@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   FileText,
   AlertCircle,
+  AlertTriangle,
   Calendar,
   CheckCircle2,
   FileQuestion
@@ -230,9 +231,15 @@ export const ContractDetailsPage: React.FC = () => {
               <Badge risk={contract.riskLevel} size="sm" dot>
                 {contract.riskLevel.toUpperCase()} RISK
               </Badge>
-              <span className="text-xs uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/30">
-                {contract.status.replace('_', ' ')}
-              </span>
+              {contract.analysisStatus === 'ocr_required' ? (
+                <span className="text-xs uppercase font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/40">
+                  OCR REQUIRED
+                </span>
+              ) : (
+                <span className="text-xs uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/30">
+                  {contract.status.replace('_', ' ')}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-4 text-xs text-[#94A3B8] flex-wrap">
@@ -282,6 +289,19 @@ export const ContractDetailsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Scanned Document OCR Banner */}
+      {contract.analysisStatus === 'ocr_required' && (
+        <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 text-xs text-purple-200 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="font-bold text-purple-300 text-sm">Scanned Image Document Detected — OCR Processing Required</h4>
+            <p className="text-purple-200/90 leading-relaxed">
+              This document contains non-searchable image pages (under 25 characters of raw extractable text per page). While baseline metadata is recorded, full automated clause extraction and binding risk analysis require optical character recognition (OCR) before Thor and Loki can extract authoritative covenants.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Tabs Navigation */}
       <div className="flex items-center gap-1 border-b border-[#1D344B] overflow-x-auto pb-1 text-xs">

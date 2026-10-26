@@ -6,11 +6,19 @@ import pdfParse from 'pdf-parse';
 export interface ExtractedDocument {
   text: string;
   pageCount: number;
+  isScanned: boolean;
   metadata?: Record<string, any>;
 }
 
 export class PdfService {
-  public static async extractText(buffer: Buffer, filename: string): Promise<ExtractedDocument> {
+  /**
+   * Extracts text from buffer with timeout and detects scanned/image-only documents.
+   */
+  public static async extractText(
+    buffer: Buffer,
+    filename: string,
+    timeoutMs = 15000
+  ): Promise<ExtractedDocument> {
     const isPdf = filename.toLowerCase().endsWith('.pdf');
 
     if (isPdf) {
@@ -31,20 +39,32 @@ export class PdfService {
         origLog(...args);
       };
 
+      let parsedData: any = null;
       try {
-        const data = await pdfParse(buffer);
-        console.warn = origWarn;
-        console.log = origLog;
+        const parsePromise = pdfParse(buffer, {
+          // Max buffer processing limits
+          max: 200, // up to 200 pages
+        });
 
-        if (data.text && data.text.trim().length > 100) {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('PDF extraction timed out')), timeoutMs)
+        );
+
+        parsedData = await Promise.race([parsePromise, timeoutPromise]);
+        const text = (parsedData?.text || '').trim();
+        const numPages = parsedData?.numpages || 1;
+        const isScanned = text.length === 0 || text.length / numPages < 25;
+
+        if (text.length > 100 && !isScanned) {
           return {
-            text: data.text,
-            pageCount: data.numpages || 1,
-            metadata: data.info || {},
+            text: parsedData.text,
+            pageCount: numPages,
+            isScanned: false,
+            metadata: parsedData.info || {},
           };
         }
       } catch (err: any) {
-        // Non-blocking fallback for PDFs with malformed xref tables (e.g., A3, C1, D1)
+        // Non-blocking fallback for PDFs with malformed xref tables or errors
       } finally {
         console.warn = origWarn;
         console.log = origLog;
@@ -64,6 +84,7 @@ export class PdfService {
           return {
             text: txtContent,
             pageCount: Math.max(1, Math.ceil(txtContent.length / 2500)),
+            isScanned: false,
             metadata: { source: 'canonical_text_anchor', originalPdf: filename },
           };
         }
@@ -75,15 +96,27 @@ export class PdfService {
         return {
           text: streamText,
           pageCount: 1,
+          isScanned: false,
           metadata: { source: 'stream_decompression', originalPdf: filename },
         };
       }
 
       // Fallback Strategy 3: Clean UTF-8 buffer string
       const rawText = buffer.toString('utf-8');
+      if (PdfService.isLegalContract(rawText) || rawText.trim().length > 200) {
+        return {
+          text: rawText,
+          pageCount: 1,
+          isScanned: false,
+        };
+      }
+
+      // If all extraction and fallbacks yielded no usable text, flag as scanned
       return {
-        text: rawText,
-        pageCount: 1,
+        text: (parsedData?.text || '').trim(),
+        pageCount: parsedData?.numpages || 1,
+        isScanned: true,
+        metadata: parsedData?.info || {},
       };
     }
 
@@ -92,6 +125,7 @@ export class PdfService {
     return {
       text,
       pageCount: 1,
+      isScanned: false,
     };
   }
 
@@ -154,6 +188,7 @@ export class PdfService {
   }
 
   public static isLegalContract(text: string): boolean {
+    if (!text || text.trim().length < 50) return false;
     const indicators = [
       'agreement',
       'contract',
@@ -177,6 +212,6 @@ export class PdfService {
     ];
     const lower = text.toLowerCase();
     const matches = indicators.filter((w) => lower.includes(w)).length;
-    return matches >= 3;
+    return matches >= 2;
   }
 }

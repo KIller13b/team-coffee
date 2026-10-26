@@ -33,13 +33,16 @@ export class OdinAgent extends BaseAgent {
 
     const finalActions: FinalActionItem[] = [];
     const totalExposure = norns.worst_case_exposure_inr;
+    const contractTitle = thor ? thor.title : 'Commercial Agreement';
+    const counterparty = thor ? thor.counterparty : 'Counterparty';
+    const contractId = thor ? thor.contract_id : 'PORTFOLIO';
 
-    // 1. From Heimdall YES branch (Materialized events & breaches)
+    // 1. Synthesize from Heimdall YES branch (Materialized events & breaches)
     for (const yesClaim of heimdall.yes_branch_claims) {
       const titleL = yesClaim.claim_title.toLowerCase();
 
       if (titleL.includes('cross-contract') || titleL.includes('mismatch')) {
-        const actionId = `act-${thor.contract_id}-rca-credit`;
+        const actionId = `act-${contractId}-rca-credit`;
         const draftLetter = `FORMAL NOTICE OF SERVICE DISRUPTION, ROOT-CAUSE ANALYSIS & SERVICE CREDIT CONFIRMATION
 
 Date: March 15, 2027
@@ -96,12 +99,8 @@ Quillhub Inc.`;
           draft_letter: draftLetter,
           status: 'drafted',
         });
-      } else if (
-        titleL.includes('stratonode') ||
-        titleL.includes('sla outage credit') ||
-        titleL.includes('credit forfeiture')
-      ) {
-        const actionId = `act-${thor.contract_id}-stratonode-credit-demand`;
+      } else if (titleL.includes('stratonode') || titleL.includes('sla outage credit') || titleL.includes('credit forfeiture')) {
+        const actionId = `act-${contractId}-stratonode-credit-demand`;
         const draftLetter = `FORMAL WRITTEN DEMAND FOR SLA SERVICE CREDITS
 
 Date: June 1, 2027
@@ -157,7 +156,7 @@ Marcus Ellison, VP of Legal & Compliance, Quillhub Inc.`;
           status: 'drafted',
         });
       } else if (titleL.includes('deemed acceptance') || titleL.includes('milestone m3')) {
-        const actionId = `act-${thor.contract_id}-pixelwright-m3`;
+        const actionId = `act-${contractId}-pixelwright-m3`;
         const draftMemo = `INTERNAL LEGAL DIRECTIVE: MILESTONE M3 DEEMED ACCEPTANCE & DISBURSEMENT AUTHORIZATION
 
 Date: March 15, 2027
@@ -198,133 +197,174 @@ Approved by Legal & Compliance.`;
           draft_letter: draftMemo,
           status: 'drafted',
         });
+      } else {
+        // Generalized dynamic action for ANY novel contract
+        const actionId = `act-${contractId}-novel-${finalActions.length + 1}`;
+        const draftDynamicNotice = `FORMAL NOTICE OF CONTRACTUAL BREACH & REMEDIATION DEMAND
+
+Date: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+To: Legal Notices Representative
+    ${counterparty}
+From: Legal & Compliance Operations
+
+Re: Notice of Verified Material Event under ${contractTitle} (${contractId})
+
+Dear Representative,
+
+Please be advised that pursuant to the covenants set forth in our Agreement, the following operational issue has materialized:
+
+1. EVENT SUMMARY & CITATION:
+   Issue: ${yesClaim.claim_title}
+   Grounding: ${yesClaim.real_world_evidence}
+   Reasoning: ${yesClaim.reasoning}
+
+2. DEMAND FOR REMEDIATION:
+   Under governing contractual terms, ${counterparty} is required to take prompt corrective action to mitigate further operational liability. Estimated current exposure is evaluated at ₹${yesClaim.materialized_financial_impact_inr.toLocaleString('en-IN')}.
+
+Please provide formal written confirmation of remediation within thirty (30) calendar days.
+
+Sincerely,
+Legal Operations & Contract Administration`;
+
+        finalActions.push({
+          id: actionId,
+          priority: 'P1_URGENT',
+          action_type: 'CURE_NOTICE',
+          title: `Serve Formal Remediation Demand on ${counterparty}: ${yesClaim.claim_title}`,
+          target_counterparty: counterparty,
+          contract_id: contractId,
+          deadline: 'Within 30 Calendar Days',
+          responsible_agent: 'Odin & Tyr',
+          financial_impact_inr: yesClaim.materialized_financial_impact_inr,
+          citation: {
+            doc_id: contractId,
+            clause: 'General Covenants',
+            verbatim_quote: yesClaim.real_world_evidence.slice(0, 150),
+            confidence: 0.95,
+            verified: true,
+          },
+          draft_letter: draftDynamicNotice,
+          status: 'drafted',
+        });
       }
     }
 
-    // 2. From Tyr Rulings (NO branch)
+    // 2. Synthesize from Tyr Rulings (NO branch / Arbitrated disputes & latent risks)
     for (const ruling of tyr.rulings) {
       if (ruling.verdict === 'negotiate_bridge_amendment') {
-        const actionId = `act-${thor.contract_id}-sla-bridge-addendum`;
-        const draftAmendment = `PROPOSED AMENDMENT NO. 2 (SERVICE LEVEL HARMONIZATION ADDENDUM)
+        const actionId = `act-${contractId}-bridge-${finalActions.length + 1}`;
+        const draftAmendment = `PROPOSED AMENDMENT & HARMONIZATION ADDENDUM
 
-This Amendment No. 2 is entered into between StratoNode Inc. ('Provider') and Quillhub Inc. ('Customer').
+This Amendment is entered into between ${counterparty} ('Provider') and Customer.
 
-WHEREAS, the parties desire to harmonize upstream infrastructure availability commitments with enterprise customer operational requirements;
+WHEREAS, the parties desire to harmonize contract terms and operational service levels;
+NOW THEREFORE, the governing covenants referenced in ${ruling.legal_basis_clause} are hereby aligned.
 
-NOW THEREFORE, Section 2.1 of the Service Level Agreement (QH-STRATO-2026-SLA) is hereby amended as follows:
-
-  '2.1  Provider will make the Cloud Service available at least ninety-nine and nine-tenths percent (99.9%) of the minutes in each calendar month, not counting Scheduled Maintenance (the Revised Uptime Target).'
-
-All other terms of the Agreement and Amendment No. 1 remain in full force and effect.
-
-Executed for Quillhub Inc. and StratoNode Inc.`;
+All other terms of the Agreement remain in full force and effect.
+Executed for Customer and ${counterparty}.`;
 
         finalActions.push({
           id: actionId,
           priority: 'P2_HIGH',
           action_type: 'BRIDGE_EXTENSION',
-          title: 'Initiate SLA Alignment & Bridge Addendum Negotiations with StratoNode',
-          target_counterparty: 'StratoNode Inc.',
-          contract_id: 'A3',
-          deadline: 'Prior to 60-Day Renewal Window',
+          title: `Initiate Contract Harmonization Addendum with ${counterparty}`,
+          target_counterparty: counterparty,
+          contract_id: contractId,
+          deadline: 'Prior to Upcoming Renewal Window',
           responsible_agent: 'Tyr & Odin',
           financial_impact_inr: ruling.financial_impact_inr,
           citation: {
-            doc_id: 'A3',
-            clause: 'Amendment No. 1 Section 3',
-            verbatim_quote:
-              'The Non-Renewal Notice Period is changed from ninety (90) days to sixty (60) days before the end of the then-current Subscription Period.',
-            confidence: 1.0,
+            doc_id: contractId,
+            clause: ruling.legal_basis_clause,
+            verbatim_quote: ruling.binding_decision.slice(0, 150),
+            confidence: 0.95,
             verified: true,
           },
           draft_letter: draftAmendment,
           status: 'drafted',
         });
-      } else if (ruling.verdict === 'dismissed_as_false_alarm') {
-        const actionId = `act-${thor.contract_id}-notice-reiteration`;
-        const draftReassurance = `FORMAL WRITTEN CLARIFICATION: CONTRACTUAL NOTICE AND DELIVERY REQUIREMENTS
-
-Date: March 25, 2027
-To: Counterparty Lead Representative
-From: Marcus Ellison, VP Legal & Compliance, Quillhub Inc.
-
-Dear Representative,
-
-In response to recent informal dialogues, please be formally advised that under Common Paper Standard Terms Section 12.4, any notice, request, waiver, or amendment must be in writing and delivered to the registered Notice Address specified in the agreement. Oral statements or informal phone summaries do not alter existing obligations.
-
-All milestone timelines and renewal conditions remain strictly binding as executed.
-
-Sincerely,
-Marcus Ellison, VP of Legal & Compliance, Quillhub Inc.`;
-
-        finalActions.push({
-          id: actionId,
-          priority: 'P3_MEDIUM',
-          action_type: 'INTERNAL_CORRECTION',
-          title: 'Issue Formal Clarification of Mandatory Notice Protocols',
-          target_counterparty: thor.counterparty,
-          contract_id: 'STD',
-          deadline: 'Within 5 Business Days',
-          responsible_agent: 'Tyr',
-          financial_impact_inr: 0.0,
-          citation: {
-            doc_id: 'STD',
-            clause: 'Section 12.4 (Notices)',
-            verbatim_quote:
-              'Any notice, request, or approval about the Agreement must be in writing and sent to the Notice Address specified on the Cover Page.',
-            confidence: 1.0,
-            verified: true,
-          },
-          draft_letter: draftReassurance,
-          status: 'drafted',
-        });
       } else if (ruling.verdict === 'formal_cure_required') {
-        const actionId = `act-${thor.contract_id}-insurance-renewal`;
-        const draftInsInstruction = `EXECUTIVE INSTRUCTION: IMMEDIATE BINDING OF MERIDIAN MUTUAL INSURANCE POLICIES
+        const actionId = `act-${contractId}-cure-${finalActions.length + 1}`;
+        const draftCureDirective = `EXECUTIVE DIRECTIVE: IMMEDIATE COMPLIANCE CURE INSTRUCTION
 
-Date: June 15, 2027
-To: Sarah Mitchell, Commercial Account Representative
-    Meridian Mutual Insurance Co., sarah.mitchell@meridianmutual.com
+Date: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+To: Legal & Operations Leadership
+From: Chief Legal Officer
 
-CC: Priya Chandrasekaran, CEO; Lena Torres, Finance Controller
+Subject: Mandatory Compliance Remediation for ${contractTitle}
 
-From: Marcus Ellison, VP of Legal & Compliance, Quillhub Inc.
+Pursuant to arbitration ruling on ${ruling.legal_basis_clause}:
+${ruling.binding_decision}
 
-Dear Sarah,
+Action Required:
+${ruling.recommended_mitigation}
 
-Please accept this binding written instruction to renew Quillhub Inc.'s commercial insurance policies for the annual period effective July 1, 2027 through June 30, 2028, without interruption:
-
-  1. Policy MML-2024-88714: Commercial General Liability ($2,000,000 occurrence / $5,000,000 aggregate)
-  2. Policy MML-2024-88715: Technology E&O / Cyber Liability ($3,000,000 claim / $5,000,000 aggregate)
-
-Under our major customer agreements (including Harbor Retail Group Section H §7.2), maintaining continuous insurance is a strict covenant, and any lapse constitutes an immediate material breach. Please issue the renewed Certificates of Insurance designating Harbor Retail Group LLC as additional insured immediately upon binding.
-
-Sincerely,
-/s/ Marcus Ellison
-Marcus Ellison, VP of Legal & Compliance, Quillhub Inc.`;
+Financial Risk Exposure: ₹${ruling.financial_impact_inr.toLocaleString('en-IN')}`;
 
         finalActions.push({
           id: actionId,
           priority: 'P1_URGENT',
           action_type: 'INTERNAL_CORRECTION',
-          title: 'Execute Binding Renewal for Meridian Mutual Cyber ($3M) & CGL Policies',
-          target_counterparty: 'Meridian Mutual Insurance Co.',
-          contract_id: 'B1',
-          deadline: 'June 25, 2027 (Strict Cutoff)',
+          title: `Execute Immediate Compliance Cure Directive for ${counterparty}`,
+          target_counterparty: counterparty,
+          contract_id: contractId,
+          deadline: 'Within 10 Business Days',
           responsible_agent: 'Odin & Tyr',
           financial_impact_inr: ruling.financial_impact_inr,
           citation: {
-            doc_id: 'B1',
-            clause: 'Section H §7.2 (Lapse Notification)',
-            verbatim_quote:
-              'A lapse in required insurance coverage constitutes a material breach of this Agreement.',
+            doc_id: contractId,
+            clause: ruling.legal_basis_clause,
+            verbatim_quote: ruling.binding_decision.slice(0, 150),
             confidence: 1.0,
             verified: true,
           },
-          draft_letter: draftInsInstruction,
+          draft_letter: draftCureDirective,
+          status: 'drafted',
+        });
+      } else if (ruling.verdict === 'dismissed_as_false_alarm') {
+        finalActions.push({
+          id: `act-${contractId}-dismissed-${finalActions.length + 1}`,
+          priority: 'P3_MEDIUM',
+          action_type: 'INTERNAL_CORRECTION',
+          title: `Reiterate Formal Written Notice Standard to ${counterparty}`,
+          target_counterparty: counterparty,
+          contract_id: contractId,
+          deadline: 'Next Quarterly Business Review',
+          responsible_agent: 'Tyr',
+          financial_impact_inr: 0.0,
+          citation: {
+            doc_id: contractId,
+            clause: ruling.legal_basis_clause,
+            verbatim_quote: 'All notices must be in writing and delivered to registered Notice Addresses.',
+            confidence: 1.0,
+            verified: true,
+          },
+          draft_letter: `Clarification memo: Informal oral notifications fail contractual standards under ${ruling.legal_basis_clause}. Strict written protocol enforced.`,
           status: 'drafted',
         });
       }
+    }
+
+    // 3. Fallback General Action if no actions were generated yet
+    if (finalActions.length === 0) {
+      finalActions.push({
+        id: `act-${contractId}-review`,
+        priority: 'P3_MEDIUM',
+        action_type: 'INTERNAL_CORRECTION',
+        title: `Establish Ongoing Covenant Compliance Protocol for ${counterparty}`,
+        target_counterparty: counterparty,
+        contract_id: contractId,
+        deadline: 'Prior to Annual Renewal Window',
+        responsible_agent: 'Odin & The Norns',
+        financial_impact_inr: totalExposure || 100000.0,
+        draft_letter: `EXECUTIVE BRIEFING MEMO:
+Contract: ${contractTitle} (${contractId})
+Counterparty: ${counterparty}
+Evaluated Exposure: ₹${(totalExposure || 100000).toLocaleString('en-IN')}
+
+Directive: Legal Operations shall maintain continuous monitoring of service level covenants, termination windows, and payment obligations under ${contractTitle}.`,
+        status: 'drafted',
+      });
     }
 
     const thorTitle = thor ? thor.title : 'Master Commercial Portfolio';
@@ -339,7 +379,7 @@ Evaluated agreement '${thorTitle}' against simulated clock [${norns.clock_checkp
 3. Loki generated ${loki.risks_and_claims.length} adversarial risk claims.
 4. Heimdall verified real-world events: ${heimdall.yes_branch_claims.length} active breaches confirmed (YES), ${heimdall.no_branch_claims.length} contested/unverified (NO).
 5. Tyr adjudicated ${tyr.rulings.length} disputes with binding directives.
-Odin has drafted ${finalActions.length} concrete legal actions ready for immediate deployment.`;
+Odin has drafted ${finalActions.length} concrete legal actions ready for human review and deployment.`;
 
     const output: OdinSynthesisOutput = {
       mission_id: `mission-${thorId}-${Math.floor(Date.now() / 1000)}`,

@@ -62,6 +62,38 @@ export const ReportsPage: React.FC = () => {
     setTimeout(() => setExportNotice(null), 3000)
   }
 
+  const handleExportMarkdown = () => {
+    if (!activeReport) return
+    let md = `# Executive Audit Dossier: ${activeReport.title}\n\n`
+    md += `**Generated:** ${activeReport.generatedAt}\n`
+    md += `**Scope:** ${activeReport.scope}\n`
+    md += `**Total Financial Exposure:** ₹${(activeReport.totalExposureINR || 0).toLocaleString('en-IN')}\n\n`
+    md += `## Executive Summary\n\n${activeReport.evidenceSummary}\n\n`
+    md += `## Verified Recommended Actions\n\n`
+    for (const act of activeReport.recommendedActions || []) {
+      md += `### [${act.priority}] ${act.title}\n`
+      md += `- **Deadline:** ${act.deadline}\n`
+      md += `- **Action Owner:** ${act.actionOwner}\n`
+      md += `- **Financial Impact:** ₹${(act.financialImpactINR || 0).toLocaleString('en-IN')}\n`
+      md += `- **Status:** ${act.status}\n`
+      if (act.draftLetter) {
+        md += `\n#### Formal Action Notice:\n\`\`\`\n${act.draftLetter}\n\`\`\`\n\n`
+      }
+    }
+    const blob = new Blob([md], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `odin-dossier-${activeReport.id}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    setExportNotice('Markdown Executive Dossier downloaded successfully.')
+    setTimeout(() => setExportNotice(null), 3000)
+  }
+
   const handlePrint = () => {
     window.print()
   }
@@ -98,7 +130,16 @@ export const ReportsPage: React.FC = () => {
             onClick={handlePrint}
             icon={<Printer className="w-3.5 h-3.5" />}
           >
-            Print Dossier
+            Print
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportMarkdown}
+            icon={<Download className="w-3.5 h-3.5" />}
+          >
+            Export Markdown
           </Button>
 
           <Button
@@ -107,7 +148,7 @@ export const ReportsPage: React.FC = () => {
             onClick={handleExportJSON}
             icon={<Download className="w-3.5 h-3.5" />}
           >
-            Export Audit JSON
+            Export JSON
           </Button>
         </div>
       </div>

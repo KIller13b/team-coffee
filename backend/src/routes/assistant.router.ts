@@ -48,7 +48,7 @@ assistantRouter.get('/investigations', (req: Request, res: Response) => {
 
 // GET /api/assistant/investigations/:id
 assistantRouter.get('/investigations/:id', (req: Request, res: Response) => {
-  const match = assistantOrchestrator.getInvestigationById(req.params.id);
+  const match = assistantOrchestrator.getInvestigationById(req.params.id as string);
   if (!match) {
     res.status(404).json({ error: 'Investigation not found', detail: `ID '${req.params.id}' not found.` });
     return;
@@ -58,7 +58,7 @@ assistantRouter.get('/investigations/:id', (req: Request, res: Response) => {
 
 // GET /api/assistant/sources/:sourceId
 assistantRouter.get('/sources/:sourceId', (req: Request, res: Response) => {
-  const sId = req.params.sourceId;
+  const sId = req.params.sourceId as string;
 
   // Search across recent investigations
   const allInvestigations = assistantOrchestrator.getRecentInvestigations();

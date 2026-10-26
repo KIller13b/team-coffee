@@ -133,14 +133,33 @@ export const ContractsListPage: React.FC = () => {
               onClick={async () => {
                 const confirmed = window.confirm('Are you sure you want to clear all uploaded contracts?')
                 if (confirmed) {
+                  setIsLoading(true)
                   setContracts([])
                   await contractsService.clearContracts()
                   await loadContracts()
+                  setIsLoading(false)
                 }
               }}
               className="text-xs text-red-400 hover:text-red-300 border-red-500/30 hover:border-red-500/60"
             >
               Clear All
+            </Button>
+          )}
+
+          {/* Restore Canonical Contracts (when empty) */}
+          {contracts.length === 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                setIsLoading(true)
+                await contractsService.seedContracts()
+                await loadContracts()
+                setIsLoading(false)
+              }}
+              className="text-xs text-teal-300 border-teal-500/30 hover:border-teal-500/60"
+            >
+              Restore Canonical Contracts
             </Button>
           )}
 
@@ -259,14 +278,16 @@ export const ContractsListPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <span
                         className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                          contract.analysisStatus === 'flagged'
+                          contract.analysisStatus === 'ocr_required'
+                            ? 'bg-purple-500/10 text-purple-300 border border-purple-500/40'
+                            : contract.analysisStatus === 'flagged'
                             ? 'bg-red-500/10 text-red-400 border border-red-500/30'
                             : contract.analysisStatus === 'pending_arbitration'
                             ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                             : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
                         }`}
                       >
-                        {contract.analysisStatus.replace('_', ' ')}
+                        {contract.analysisStatus === 'ocr_required' ? 'OCR REQUIRED' : contract.analysisStatus.replace('_', ' ')}
                       </span>
                     </td>
 

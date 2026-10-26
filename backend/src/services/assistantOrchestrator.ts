@@ -132,7 +132,7 @@ export class AssistantOrchestrator {
         category: evidence.category,
         targetContracts: evidence.targetContracts,
         targetEvents: evidence.targetEvents,
-        targetPeriod: evidence.targetPeriod,
+        targetDateOrPeriod: evidence.targetPeriod,
         isOutageRelated: isSlaOutageQuery,
       },
       claims,

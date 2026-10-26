@@ -56,7 +56,7 @@ simulationRouter.get('/scenarios', (req: Request, res: Response) => {
 // GET /api/simulation/dependencies/:id
 simulationRouter.get('/dependencies/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const rawId = req.params.id;
+    const rawId = req.params.id as string;
     const norm = normalizeContractId(rawId);
 
     const allContracts = await getAllContracts();
@@ -72,7 +72,7 @@ simulationRouter.get('/dependencies/:id', async (req: Request, res: Response, ne
     const cleanTargetId = norm.toLowerCase();
     const dependentContracts = allContracts.filter((c) => {
       if (c.id === target.id) return false;
-      const related = (c.relatedContractIds || []).map((r) => normalizeContractId(r).toLowerCase());
+      const related = (c.relatedContractIds || []).map((r: string) => normalizeContractId(r).toLowerCase());
       const isRelated = related.includes(cleanTargetId);
       const isSupplierDownstream =
         cleanTargetId.includes('a1') && (c.id.toLowerCase().includes('b1') || c.id.toLowerCase().includes('c1'));

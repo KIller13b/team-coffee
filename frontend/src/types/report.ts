@@ -1,6 +1,6 @@
 export interface RecommendedAction {
   id: string
-  priority: 'p1' | 'p2' | 'p3'
+  priority: string
   title: string
   description: string
   contractId: string
@@ -9,7 +9,8 @@ export interface RecommendedAction {
   actionOwner: string
   financialImpactINR: number
   arbitrationVerdictRef: string
-  status: 'pending_approval' | 'in_progress' | 'executed'
+  status: 'pending_approval' | 'in_progress' | 'executed' | string
+  draftLetter?: string
 }
 
 export interface ContractReport {
