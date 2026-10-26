@@ -40,8 +40,8 @@ export function Navigation({ store, loading }) {
     },
     { 
       id: 'council', 
-      label: 'Council & Benchmarks', 
-      icon: Award,
+      label: 'Council Chatbot', 
+      icon: MessageSquare,
       highlight: true
     },
     { 

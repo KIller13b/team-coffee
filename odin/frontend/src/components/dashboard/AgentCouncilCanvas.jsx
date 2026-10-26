@@ -92,7 +92,7 @@ export function AgentCouncilCanvas({ analysis, onNavigateToTimeline, onNavigateT
       status: 'Remedies Formulated',
       statusType: 'success',
       metric: `${tyrActions.length} Binding Actions Drafted`,
-      submetric: `${tyrRulings.length} Legal Rulings`,
+      submetric: `${tyrActions.filter(a => a.requires_human_approval).length} Require Human Approval`,
       description: 'Adjudicates competing agent claims, resolves SLA disputes, and drafts legally enforceable notices.'
     },
     {
@@ -313,14 +313,25 @@ export function AgentCouncilCanvas({ analysis, onNavigateToTimeline, onNavigateT
               {/* Tyr Adjudication & Rulings */}
               {selectedAgent === 'tyr' && (
                 tyrActions.map((act, idx) => (
-                  <div key={idx} className="p-3.5 rounded-xl bg-white border border-emerald-200 text-xs space-y-2 shadow-2xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="font-bold text-emerald-800 font-mono">
+                  <div key={idx} className={`p-3.5 rounded-xl bg-white border text-xs space-y-2 shadow-2xs ${act.requires_human_approval ? 'border-amber-300 ring-1 ring-amber-200/50' : 'border-emerald-200'}`}>
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div className="font-bold text-slate-900 font-mono">
                         [{act.action_id}] {act.title}
                       </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-                        {act.action_type}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {act.requires_human_approval ? (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                            ⚠ HUMAN APPROVAL NEEDED
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            AUTONOMOUS
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-700 border border-slate-200 font-semibold">
+                          {act.action_type}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-slate-600 text-xs leading-relaxed">
                       {act.description}

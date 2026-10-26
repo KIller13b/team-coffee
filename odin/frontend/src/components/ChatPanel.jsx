@@ -3,12 +3,12 @@ import { Send, Bot, User, Sparkles, MessageSquare, Trash2, ArrowRight } from 'lu
 import { Citation, AgentBadge } from './Shared'
 
 const AGENTS = [
-  { id: 'council', name: 'ALL COUNCIL', role: 'Full War Room Consensus', color: 'indigo' },
-  { id: 'loki', name: 'LOKI', role: 'Adversarial Red-Team', color: 'rose' },
-  { id: 'norns', name: 'NORNS', role: 'Timeline & Financial Calculations', color: 'purple' },
-  { id: 'thor', name: 'THOR', role: 'Contract Clause & Grounding', color: 'cyan' },
-  { id: 'heimdall', name: 'HEIMDALL', role: 'Event Incident Verifier', color: 'blue' },
-  { id: 'tyr', name: 'TYR', role: 'Legal Rulings & Notices', color: 'emerald' },
+  { id: 'council', name: 'ALL COUNCIL', role: 'Full War Room Consensus' },
+  { id: 'loki', name: 'LOKI', role: 'Adversarial Red-Team' },
+  { id: 'norns', name: 'NORNS', role: 'Timeline & Financial Calculations' },
+  { id: 'thor', name: 'THOR', role: 'Contract Clause & Grounding' },
+  { id: 'heimdall', name: 'HEIMDALL', role: 'Event Incident Verifier' },
+  { id: 'tyr', name: 'TYR', role: 'Legal Rulings & Notices' },
 ]
 
 const QUICK_PROMPTS = [
@@ -121,12 +121,12 @@ export function ChatPanel({ store }) {
   }
 
   return (
-    <div className="flex flex-col h-[700px] space-y-3 font-sans">
-      {/* Top Agent Selector */}
-      <div className="workspace-panel p-3.5 flex flex-wrap items-center justify-between gap-2">
+    <div className="workspace-panel border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[660px] overflow-hidden bg-white">
+      {/* 1. Integrated Agent Filter Header */}
+      <div className="px-5 py-3 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-2 flex items-center gap-1.5">
-            <Bot size={15} className="text-indigo-600" /> Consult:
+            <Bot size={15} className="text-indigo-600" /> Target Agent:
           </span>
           {AGENTS.map(a => (
             <button
@@ -146,15 +146,18 @@ export function ChatPanel({ store }) {
         <button
           onClick={() => setMessages([messages[0]])}
           title="Clear chat history"
-          className="text-xs text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition-colors flex items-center gap-1"
+          className="text-xs text-slate-400 hover:text-rose-600 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
         >
           <Trash2 size={13} />
-          <span>Clear</span>
+          <span>Clear History</span>
         </button>
       </div>
 
-      {/* Quick Prompts Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1 text-xs">
+      {/* 2. Quick Prompts Sub-Bar */}
+      <div className="px-5 py-2.5 bg-slate-50/80 border-b border-slate-100 flex items-center gap-2 overflow-x-auto text-xs shrink-0 select-none">
+        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+          <Sparkles size={12} className="text-amber-500" /> Prompts:
+        </span>
         {QUICK_PROMPTS.map((p, idx) => (
           <button
             key={idx}
@@ -162,24 +165,24 @@ export function ChatPanel({ store }) {
               setSelectedAgent(p.agent)
               handleSend(p.text, p.agent)
             }}
-            className="shrink-0 bg-white hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-300 text-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all text-left shadow-xs"
+            className="shrink-0 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 px-3 py-1 rounded-full flex items-center gap-1.5 transition-all text-left shadow-2xs font-medium text-[11px]"
           >
-            <Sparkles size={12} className="text-amber-500 shrink-0" />
-            <span className="font-medium">{p.title}</span>
+            <span>{p.title}</span>
           </button>
         ))}
       </div>
 
-      {/* Chat Messages Stream */}
-      <div className="flex-1 workspace-panel p-5 overflow-y-auto space-y-5 bg-white">
+      {/* 3. Messages Stream */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 bg-slate-50/40">
         {messages.map((m, idx) => {
           const isUser = m.role === 'user'
 
           return (
             <div
               key={idx}
-              className={`flex items-start gap-3.5 ${isUser ? 'flex-row-reverse' : ''}`}
+              className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}
             >
+              {/* Avatar */}
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
                   isUser
@@ -187,32 +190,39 @@ export function ChatPanel({ store }) {
                     : 'bg-slate-900 text-amber-400 border border-slate-800'
                 }`}
               >
-                {isUser ? <User size={15} /> : <Bot size={15} />}
+                {isUser ? <User size={14} /> : <Bot size={14} />}
               </div>
 
+              {/* Message Bubble with comfortable padding and max-width */}
               <div
-                className={`max-w-[85%] rounded-2xl p-4.5 space-y-3 ${
+                className={`max-w-2xl rounded-2xl p-4.5 space-y-2.5 ${
                   isUser
                     ? 'bg-indigo-600 text-white shadow-sm rounded-tr-none'
-                    : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-tl-none'
+                    : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-2xs'
                 }`}
+                style={{ padding: '16px' }}
               >
-                <div className="flex items-center justify-between gap-4 border-b border-black/10 pb-1.5 text-[11px] opacity-75">
+                {/* Bubble Header */}
+                <div className={`flex items-center justify-between gap-4 border-b pb-1.5 text-[11px] ${
+                  isUser ? 'border-white/20 text-white/80' : 'border-slate-100 text-slate-500'
+                }`}>
                   <span className="font-semibold font-mono">
                     {isUser ? 'YOU' : m.agentTitle}
                   </span>
-                  <span className="font-mono text-[10px]">{m.timestamp}</span>
+                  <span className="font-mono text-[10px] opacity-75">{m.timestamp}</span>
                 </div>
 
-                {/* Message body */}
-                <div className={`text-xs leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white' : 'text-slate-800'}`}>
+                {/* Message Body */}
+                <div className={`text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans ${
+                  isUser ? 'text-white' : 'text-slate-700'
+                }`}>
                   {m.content}
                 </div>
 
                 {/* Grounded Citations */}
                 {m.citations && m.citations.length > 0 && (
-                  <div className="pt-2 border-t border-slate-200 space-y-2">
-                    <span className="text-[11px] text-slate-500 font-mono font-bold block uppercase tracking-wider">
+                  <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                    <span className="text-[10px] text-slate-500 font-mono font-bold block uppercase tracking-wider">
                       Grounded Citations & Evidence:
                     </span>
                     {m.citations.map((c, cIdx) => (
@@ -223,12 +233,12 @@ export function ChatPanel({ store }) {
 
                 {/* Suggested followups */}
                 {m.followups && m.followups.length > 0 && (
-                  <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-1.5">
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
                     {m.followups.map((f, fIdx) => (
                       <button
                         key={fIdx}
                         onClick={() => handleSend(f, m.agent)}
-                        className="text-[11px] bg-white hover:bg-indigo-50 border border-slate-200 text-indigo-700 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors font-medium shadow-2xs"
+                        className="text-[11px] bg-slate-50 hover:bg-indigo-50 border border-slate-200 text-indigo-700 px-2.5 py-1 rounded-md flex items-center gap-1 transition-colors font-medium shadow-2xs"
                       >
                         <ArrowRight size={10} />
                         {f}
@@ -242,7 +252,7 @@ export function ChatPanel({ store }) {
         })}
 
         {loading && (
-          <div className="flex items-center gap-3 text-slate-500 text-xs animate-pulse p-3 bg-slate-50 rounded-xl border border-slate-200 w-fit">
+          <div className="flex items-center gap-2.5 text-slate-500 text-xs animate-pulse p-3 bg-white rounded-xl border border-slate-200 w-fit shadow-2xs">
             <Bot size={15} className="text-indigo-600 animate-spin" />
             <span>Agent council deliberating and verifying citations...</span>
           </div>
@@ -250,29 +260,35 @@ export function ChatPanel({ store }) {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input box */}
-      <div className="flex gap-2">
-        <textarea
-          rows={2}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              handleSend()
-            }
-          }}
-          placeholder="Ask the council anything about Quillhub contracts, SLA gaps, default conditions, or events... (Press Enter to send)"
-          className="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none font-sans shadow-xs"
-        />
-        <button
-          onClick={() => handleSend()}
-          disabled={loading || !input.trim()}
-          className="px-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
-        >
-          <Send size={15} />
-          <span>Send</span>
-        </button>
+      {/* 4. Integrated Pinned Input Bar */}
+      <div className="p-4 bg-white border-t border-slate-200 shrink-0">
+        <div className="flex items-end gap-2.5 bg-slate-50 border border-slate-200 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 rounded-xl p-2.5 transition-all shadow-2xs">
+          <textarea
+            rows={2}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSend()
+              }
+            }}
+            placeholder="Ask the council anything about Quillhub contracts, SLA gaps, default conditions, or events... (Press Enter to send)"
+            className="flex-1 bg-transparent border-0 p-1 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none font-sans"
+          />
+          <button
+            onClick={() => handleSend()}
+            disabled={loading || !input.trim()}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 shrink-0"
+          >
+            <Send size={14} />
+            <span>Send</span>
+          </button>
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 mt-2">
+          <span>Press <kbd className="font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200 text-slate-600 text-[10px]">Enter</kbd> to send, <kbd className="font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200 text-slate-600 text-[10px]">Shift + Enter</kbd> for new line</span>
+          <span className="font-mono text-slate-500 hidden sm:inline">Grounded in verified contract clauses</span>
+        </div>
       </div>
     </div>
   )
