@@ -87,6 +87,19 @@ def get_contracts():
     return load_manifest()
 
 
+@app.get("/api/contracts/{doc_id}/content")
+def get_contract_content(doc_id: str):
+    """Return raw text content of a specific contract document."""
+    from ..tools.bundle_loader import load_contract
+    try:
+        content = load_contract(doc_id.upper())
+        if not content:
+            raise HTTPException(status_code=404, detail=f"Contract document {doc_id} not found")
+        return {"doc_id": doc_id.upper(), "content": content}
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @app.get("/api/events")
 def get_events(drop: int = 0):
     """Return events. drop=0 returns all, drop=1 or drop=2 for specific drops."""

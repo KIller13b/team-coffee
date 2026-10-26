@@ -195,27 +195,22 @@ export function ChatPanel({ store }) {
 
               {/* Message Bubble with comfortable padding and max-width */}
               <div
-                className={`max-w-2xl rounded-2xl p-4.5 space-y-2.5 ${
+                className={`max-w-2xl rounded-2xl p-4 space-y-2.5 shadow-sm ${
                   isUser
-                    ? 'bg-indigo-600 text-white shadow-sm rounded-tr-none'
-                    : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-2xs'
+                    ? 'bg-indigo-600 text-white rounded-tr-none'
+                    : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-subtle'
                 }`}
-                style={{ padding: '16px' }}
               >
                 {/* Bubble Header */}
-                <div className={`flex items-center justify-between gap-4 border-b pb-1.5 text-[11px] ${
-                  isUser ? 'border-white/20 text-white/80' : 'border-slate-100 text-slate-500'
-                }`}>
-                  <span className="font-semibold font-mono">
+                <div className={`flex items-center justify-between gap-4 border-b ${isUser ? 'border-indigo-400/30 text-indigo-100' : 'border-slate-100 text-slate-500'} pb-1.5 text-[11px]`}>
+                  <span className="font-semibold font-mono tracking-wider">
                     {isUser ? 'YOU' : m.agentTitle}
                   </span>
-                  <span className="font-mono text-[10px] opacity-75">{m.timestamp}</span>
+                  <span className="font-mono text-[10px] opacity-80">{m.timestamp}</span>
                 </div>
 
                 {/* Message Body */}
-                <div className={`text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans ${
-                  isUser ? 'text-white' : 'text-slate-700'
-                }`}>
+                <div className={`text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white' : 'text-slate-700'}`}>
                   {m.content}
                 </div>
 

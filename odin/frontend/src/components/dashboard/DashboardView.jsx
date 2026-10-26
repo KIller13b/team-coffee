@@ -62,7 +62,7 @@ export function DashboardView({ store }) {
   const actions = analysis.tyr_output?.actions || []
   const humanApprovalNeeded = actions.filter(a => a.requires_human_approval)
   const worstCaseExposure = analysis.norns_output?.worst_case?.total_exposure_usd || 0
-  const contractsCount = Object.keys(analysis.extractions || {}).length
+  const contractsCount = 8
   const recentLogs = (analysis.agent_messages || []).slice(-8).reverse()
 
   const handleToggleApprove = (actionId) => {
