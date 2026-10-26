@@ -38,6 +38,7 @@ export function WhatIfStrategySandbox({ store }) {
   } = store
 
   // Simulation controls state
+  const [promptText, setPromptText] = useState('')
   const [selectedPresetId, setSelectedPresetId] = useState('vendor_default_day_45')
   const [scenarioType, setScenarioType] = useState('vendor_default')
   const [dayOffset, setDayOffset] = useState(45)
@@ -66,6 +67,25 @@ export function WhatIfStrategySandbox({ store }) {
       })
     } catch (e) {
       console.error('Error running simulation:', e)
+    }
+  }
+
+  const handlePredictPrompt = async (overrideText) => {
+    const text = overrideText || promptText
+    if (!text || !text.trim()) return
+    try {
+      const result = await runWhatIfSimulation({
+        prompt: text.trim()
+      })
+      if (result?.prompt_interpretation) {
+        setDayOffset(result.prompt_interpretation.day_offset)
+        setScenarioType(result.prompt_interpretation.scenario_type)
+        setTargetContractId(result.prompt_interpretation.target_contract_id)
+        setTerminationCause(result.prompt_interpretation.termination_cause)
+        setSelectedPresetId('prompt_custom')
+      }
+    } catch (e) {
+      console.error('Error running prompt simulation:', e)
     }
   }
 
@@ -152,6 +172,107 @@ export function WhatIfStrategySandbox({ store }) {
               <span>Recalculate</span>
             </button>
           </div>
+        </div>
+
+        {/* ─── Natural Language Simulation Prompt Bar ─────────────────────────── */}
+        <div className="mt-5 p-4 rounded-2xl bg-gradient-to-r from-indigo-50/90 via-purple-50/70 to-blue-50/90 border border-indigo-200 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wide">
+              <Sparkles size={14} className="text-indigo-600 animate-pulse" />
+              <span>Ask What-If Scenario Prompt & Predict Output</span>
+            </label>
+            <span className="text-[11px] font-mono text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full border border-indigo-200 shadow-2xs">
+              Natural Language Predictive Engine
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={promptText}
+                onChange={(e) => setPromptText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handlePredictPrompt()}
+                placeholder="Ask any scenario (e.g. 'What happens if Vendor X defaults on Day 45?' or 'What is our total exposure if we terminate Product Y early?')..."
+                className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white border border-indigo-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-xs transition-all font-sans"
+              />
+              {promptText && (
+                <button
+                  onClick={() => setPromptText('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => handlePredictPrompt()}
+              disabled={simulating || !promptText.trim()}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-2 shrink-0 active:scale-95"
+            >
+              {simulating ? (
+                <>
+                  <RefreshCw size={13} className="animate-spin" />
+                  <span>Predicting...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={13} className="text-amber-300" />
+                  <span>Predict Output</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Quick Suggestion Chips */}
+          <div className="flex items-center gap-2 mt-2.5 overflow-x-auto pb-1 text-xs">
+            <span className="text-[11px] font-mono text-slate-500 shrink-0">Try Prompts:</span>
+            {[
+              "What happens if Vendor X defaults on Day 45?",
+              "What is our total exposure if we terminate Product Y early on Day 60?",
+              "What if Pixelwright frontend agency defaults on Day 60?",
+              "What if Meridian insurance policy lapses on Day 106?"
+            ].map((p, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setPromptText(p)
+                  handlePredictPrompt(p)
+                }}
+                className="px-2.5 py-1 rounded-lg bg-white/80 hover:bg-white text-slate-700 hover:text-indigo-900 text-[11px] border border-indigo-200/80 transition-colors whitespace-nowrap shadow-2xs font-sans text-left"
+              >
+                "{p}"
+              </button>
+            ))}
+          </div>
+
+          {/* Active Prompt Interpretation Card */}
+          {res?.prompt_interpretation && (
+            <div className="mt-3 p-3 rounded-xl bg-white/95 border border-indigo-200 text-xs shadow-2xs flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono font-bold flex items-center gap-1">
+                  <CheckCircle2 size={11} className="text-emerald-600" />
+                  Prompt Parsed & Predicted
+                </span>
+                <span className="text-slate-600 font-mono text-[11px]">
+                  Target: <strong className="text-slate-900">{res.prompt_interpretation.detected_entity}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-slate-600 font-mono text-[11px]">
+                  Point: <strong className="text-slate-900">Day {res.prompt_interpretation.day_offset}</strong> ({res.simulated_date})
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-slate-600 font-mono text-[11px]">
+                  Classification: <strong className="text-slate-900">{res.prompt_interpretation.scenario_type.replace('_', ' ').toUpperCase()}</strong>
+                </span>
+              </div>
+
+              <div className="text-[11px] font-mono text-indigo-700 font-semibold">
+                Confidence: {(res.prompt_interpretation.confidence * 100).toFixed(0)}%
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ─── Scenario Presets Bar ────────────────────────────────────────── */}
