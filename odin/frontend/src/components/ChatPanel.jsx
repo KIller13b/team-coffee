@@ -191,21 +191,21 @@ export function ChatPanel({ store }) {
               </div>
 
               <div
-                className={`max-w-[85%] rounded-2xl p-4.5 space-y-3 ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 space-y-2 shadow-xs ${
                   isUser
-                    ? 'bg-indigo-600 text-white shadow-sm rounded-tr-none'
-                    : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-tl-none'
+                    ? 'bg-indigo-600 text-white rounded-tr-none'
+                    : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-subtle'
                 }`}
               >
-                <div className={`flex items-center justify-between gap-4 border-b ${isUser ? 'border-white/20' : 'border-slate-200'} pb-1.5 text-[11px] ${isUser ? 'text-indigo-100' : 'text-slate-500'}`}>
-                  <span className="font-semibold font-mono tracking-wide">
+                <div className={`flex items-center justify-between gap-4 border-b ${isUser ? 'border-indigo-400/30' : 'border-slate-100'} pb-1.5 text-[11px] ${isUser ? 'text-indigo-100' : 'text-slate-400'}`}>
+                  <span className="font-semibold font-mono tracking-wider">
                     {isUser ? 'YOU' : m.agentTitle}
                   </span>
-                  <span className="font-mono text-[10px]">{m.timestamp}</span>
+                  <span className="font-mono text-[10px] opacity-80">{m.timestamp}</span>
                 </div>
 
                 {/* Message body */}
-                <div className={`text-xs leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white font-medium' : 'text-slate-800'}`}>
+                <div className={`text-xs leading-relaxed whitespace-pre-wrap font-sans ${isUser ? 'text-white font-normal' : 'text-slate-800'}`}>
                   {m.content}
                 </div>
 
