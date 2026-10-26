@@ -170,6 +170,63 @@ export const DashboardPage: React.FC = () => {
         totalExposureINR={totalExposureINR}
       />
 
+      {/* PS-2 SLA Credit Exposure & Financial Recovery Banner */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-[#0D2033] border border-amber-500/30 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] text-[#94A3B8] font-medium block">
+              Customer-Credit Exposure (Verified)
+            </span>
+            <h4 className="text-xl font-bold font-mono text-amber-400 mt-0.5">
+              $6,000.00
+            </h4>
+            <span className="text-[10px] text-[#94A3B8]">
+              Harbor Retail B1 §3.3 (15% credit on E-04 outage)
+            </span>
+          </div>
+          <span className="text-xs font-mono px-2 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+            ₹4,98,000
+          </span>
+        </div>
+
+        <div className="p-4 rounded-xl bg-[#0D2033] border border-teal-500/30 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] text-[#94A3B8] font-medium block">
+              Vendor-Recovery Recourse (StratoNode)
+            </span>
+            <h4 className="text-xl font-bold font-mono text-teal-300 mt-0.5">
+              $0.00
+            </h4>
+            <span className="text-[10px] text-[#94A3B8]">
+              StratoNode SLA A2 §2.1 target (99.5%) was met (99.57%)
+            </span>
+          </div>
+          <span className="text-xs font-mono px-2 py-1 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
+            $6k Gap
+          </span>
+        </div>
+
+        <div className="p-4 rounded-xl bg-gradient-to-r from-[#10263B] to-[#081727] border border-teal-500/40 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] text-teal-300 font-bold uppercase tracking-wider block">
+              Evidence-Backed AI Chat
+            </span>
+            <p className="text-xs text-[#F1F5F9] font-medium mt-0.5">
+              Ask complex contract & breach questions
+            </p>
+            <span className="text-[10px] text-[#94A3B8]">
+              Thor, Norns, Loki, Heimdall, Tyr & Odin
+            </span>
+          </div>
+          <a
+            href="/assistant"
+            className="px-3 py-1.5 rounded-lg bg-blue-600/30 text-teal-300 border border-teal-500/40 hover:bg-teal-500/20 text-xs font-semibold transition-colors"
+          >
+            Open Chat →
+          </a>
+        </div>
+      </div>
+
       {/* Center 2-Column Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (5 cols): Risk Donut */}

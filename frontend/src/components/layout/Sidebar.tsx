@@ -10,6 +10,9 @@ import {
   Settings,
   ShieldCheck,
   ChevronRight,
+  FlaskConical,
+  Sparkles,
+  Search,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { contractsService } from '../../services/contractsService'
@@ -46,6 +49,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, badge: null },
+    { name: 'AI Assistant', path: '/assistant', icon: Sparkles, badge: 'PS-2' },
+    { name: 'Investigations', path: '/investigations', icon: Search, badge: null },
     {
       name: 'Contracts',
       path: '/contracts',
@@ -53,6 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, onCloseMobile }) =>
       badge: contractsCount > 0 ? `${contractsCount}` : null,
     },
     { name: 'Timeline', path: '/timeline', icon: CalendarClock, badge: contractsCount > 0 ? 'Sim' : null },
+    { name: 'What-If Sandbox', path: '/sandbox', icon: FlaskConical, badge: 'New' },
     {
       name: 'Risks & Alerts',
       path: '/risks',

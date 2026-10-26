@@ -6,6 +6,8 @@ import { contractsRouter } from './routes/contracts.router';
 import { risksRouter } from './routes/risks.router';
 import { agentsRouter } from './routes/agents.router';
 import { timelineRouter } from './routes/timeline.router';
+import { simulationRouter } from './routes/simulation.router';
+import { assistantRouter } from './routes/assistant.router';
 
 export const app = express();
 
@@ -53,6 +55,8 @@ app.use('/api/contracts', contractsRouter);
 app.use('/api/risks', risksRouter);
 app.use('/api', agentsRouter);
 app.use('/api', timelineRouter);
+app.use('/api/simulation', simulationRouter);
+app.use('/api/assistant', assistantRouter);
 
 // Centralized error handling
 app.use(errorHandler);
