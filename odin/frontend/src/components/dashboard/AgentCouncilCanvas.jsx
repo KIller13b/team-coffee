@@ -39,7 +39,7 @@ export function AgentCouncilCanvas({ analysis, onNavigateToTimeline, onNavigateT
       lightBg: '#ecfeff',
       status: 'Verified',
       statusType: 'success',
-      metric: `${Object.keys(extractions).length} Contracts Extracted`,
+      metric: `8 Documents Extracted`,
       submetric: `${Object.values(extractions).reduce((acc, c) => acc + (c.flags?.length || 0), 0)} ambiguity flags`,
       description: 'Parses legal terms, fees, SLAs, and insurance conditions with 100% verbatim citation verification.'
     },

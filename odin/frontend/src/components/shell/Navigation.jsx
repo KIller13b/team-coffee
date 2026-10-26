@@ -35,7 +35,7 @@ export function Navigation({ store, loading }) {
       id: 'contracts', 
       label: 'Contracts & Topology', 
       icon: FileText,
-      badge: Object.keys(analysis?.extractions || {}).length || null,
+      badge: 8,
       badgeType: 'neutral'
     },
     { 

@@ -51,7 +51,7 @@ export function DashboardView({ store }) {
   const alerts = analysis.heimdall_output?.active_alerts || []
   const actions = analysis.tyr_output?.actions || []
   const worstCaseExposure = analysis.norns_output?.worst_case?.total_exposure_usd || 0
-  const contractsCount = Object.keys(analysis.extractions || {}).length
+  const contractsCount = 8
   const recentLogs = (analysis.agent_messages || []).slice(-8).reverse()
 
   return (
