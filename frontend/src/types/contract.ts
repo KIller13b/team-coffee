@@ -1,6 +1,6 @@
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 export type ContractStatus = 'active' | 'under_review' | 'expiring_soon' | 'terminated' | 'disputed'
-export type AnalysisStatus = 'completed' | 'processing' | 'pending_arbitration' | 'flagged'
+export type AnalysisStatus = 'completed' | 'processing' | 'pending_arbitration' | 'flagged' | 'ocr_required'
 
 export interface ContractClause {
   id: string

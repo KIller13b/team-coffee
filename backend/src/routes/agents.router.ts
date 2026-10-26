@@ -26,8 +26,22 @@ agentsRouter.get('/agents', (req: Request, res: Response) => {
       item.totalProcessedCount = 0;
       item.currentTask = standbyTasks[a.id] || 'Standby — Awaiting document ingestion';
     } else {
-      item.completedTasksCount = warRoomState.contracts.length * 4;
-      item.totalProcessedCount = warRoomState.contracts.length * 4;
+      let count = 0;
+      if (a.id === 'thor') {
+        count = (warRoomState.clauses?.length || 0) + (warRoomState.obligations?.length || 0);
+      } else if (a.id === 'norns') {
+        count = warRoomState.timelineEvents?.length || 0;
+      } else if (a.id === 'loki') {
+        count = warRoomState.risks?.length || 0;
+      } else if (a.id === 'heimdall') {
+        count = warRoomState.rawEvents?.length || 0;
+      } else if (a.id === 'tyr') {
+        count = (warRoomState.reports?.length || 0) * 4;
+      } else if (a.id === 'odin') {
+        count = (warRoomState.actions?.length || 0) + (warRoomState.reports?.length || 0);
+      }
+      item.completedTasksCount = Math.max(count, warRoomState.contracts.length);
+      item.totalProcessedCount = item.completedTasksCount;
       item.currentTask = `Active analysis across ${warRoomState.contracts.length} commercial agreement${
         warRoomState.contracts.length > 1 ? 's' : ''
       }`;

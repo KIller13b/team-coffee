@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { warRoomState } from '../services/warRoomState';
 import { TimelineEventModel } from '../models/TimelineEvent.model';
 import { ContractReportModel } from '../models/Report.model';
@@ -84,10 +85,12 @@ timelineRouter.get('/reports/:id', async (req: Request, res: Response, next: Nex
       return;
     }
 
-    const dbReport = await ContractReportModel.findOne({ id }).lean();
-    if (dbReport) {
-      res.json(dbReport);
-      return;
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      const dbReport = await ContractReportModel.findOne({ id }).lean();
+      if (dbReport) {
+        res.json(dbReport);
+        return;
+      }
     }
 
     res.status(404).json({ detail: 'Report not found', error: 'Report not found' });

@@ -175,6 +175,7 @@ export interface WorkflowExecutionResult {
   odin: OdinSynthesisOutput;
   logs: Record<string, any>[];
   observability?: Record<string, any>;
+  workstreams?: Record<string, any>[];
 }
 
 export abstract class BaseAgent {

@@ -29,9 +29,13 @@ export async function apiRequest<T>(
   }
 
   try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('odin_auth_token') : null
+    const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
         ...options?.headers,
       },
       ...options,

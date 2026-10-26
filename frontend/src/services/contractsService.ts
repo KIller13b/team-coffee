@@ -199,10 +199,31 @@ export const contractsService = {
     } catch {}
     try {
       await apiRequest('/contracts', { method: 'DELETE' })
-    } catch {}
+    } catch (e) {
+      console.error('[Odin] Failed to clear contracts on backend:', e)
+    }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('odin:contract-uploaded'))
     }
+  },
+
+  async seedContracts(): Promise<Contract[]> {
+    try {
+      const res = await apiRequest<Contract[]>('/contracts/seed', { method: 'POST' })
+      if (Array.isArray(res.data)) {
+        contractsState = res.data
+        try {
+          localStorage.setItem('odin_uploaded_contracts', JSON.stringify(res.data))
+        } catch {}
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('odin:contract-uploaded'))
+        }
+        return res.data
+      }
+    } catch (e) {
+      console.error('[Odin] Failed to seed contracts on backend:', e)
+    }
+    return this.getContracts()
   },
 
   async deleteContract(id: string): Promise<void> {
@@ -255,8 +276,8 @@ export const contractsService = {
     const res = await apiRequest<AgentInfo[]>('/agents', {}, () => {
       return MOCK_AGENTS.map((a) => ({
         ...a,
-        completedTasksCount: hasContracts ? contracts.length * 4 : 0,
-        totalProcessedCount: hasContracts ? contracts.length * 4 : 0,
+        completedTasksCount: hasContracts ? (a.completedTasksCount || 1) : 0,
+        totalProcessedCount: hasContracts ? (a.totalProcessedCount || 1) : 0,
         status: hasContracts ? a.status : 'idle',
         currentTask: hasContracts ? a.currentTask : 'Standby — Awaiting document ingestion',
       }))
